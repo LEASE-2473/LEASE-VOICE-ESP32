@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+set(PROJECT_VER "0.1.0-m3.1")
+set(ENV{IDF_COMPONENT_MANAGER} "0")
+set(ENV{IDF_SKIP_CHECK_SUBMODULES} "1")
+set(COMPONENTS main)
+include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+project(lease_voice)

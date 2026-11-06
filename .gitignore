@@ -1,0 +1,31 @@
+# 本地配置、凭据及运行数据
+.env
+.env.*
+!.env.example
+**/data/
+**/cache/
+**/logs/
+*.log
+
+# 软件与固件构建产物
+node_modules/
+**/node_modules/
+**/dist/
+**/build/
+**/managed_components/
+**/sdkconfig
+**/sdkconfig.old
+**/artifacts/
+.pio/
+
+# 本地工具与编辑器状态
+.venv/
+__pycache__/
+.DS_Store
+Thumbs.db
+
+# 本机第三方硬件资料、驱动及厂商固件，不随公开源码分发
+/hardware/**
+!/hardware/README.md
+# 用户提供的语音原件保留本机；公开仓库仅保留清单
+/assets/*.mp3

@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "source": "用户提供，保留原始文件，不随插件发布",
+  "format": "WAV PCM16LE 24000Hz mono",
+  "items": [
+    {
+      "source": "assets/主人我做完啦快来看看.mp3",
+      "sourceBytes": 18108,
+      "sourceSha256": "30f08dcfae9fba17ee02a026901d7174345a4b36e2ca6d098910919d8751c654",
+      "id": "026b76c17fac3a9e0f0f248b1a14dcc4729c4da7e11182bcfd420c58443e95b5",
+      "name": "主人我做完啦快来看看",
+      "bytes": 107180,
+      "seconds": 2.232,
+      "peak": 0.4795,
+      "createdAt": "2026-11-03T14:15:07.983Z"
+    },
+    {
+      "source": "assets/任务完成.mp3",
+      "sourceBytes": 9276,
+      "sourceSha256": "aa7d45197ef3af4a6c51d6bde1cd09408e531e1f68e095aed7073a1a16701e45",
+      "id": "a2e5b9b2d6c5d933ea7daf108f203975ea1cf92944ad69bd653a8034fb9c73c6",
+      "name": "任务完成",
+      "bytes": 54188,
+      "seconds": 1.128,
+      "peak": 0.4728,
+      "createdAt": "2026-11-03T14:15:08.003Z"
+    },
+    {
+      "source": "assets/做完啦做完啦我要吃大白饭.mp3",
+      "sourceBytes": 23868,
+      "sourceSha256": "679e32a1a2f487f7ed7eafa5fac47fca6cad42e2b968f0f158dab372c4d449e7",
+      "id": "bd3297a75edfd4a04f9ae1b5699819fe9298a7989505a4621c5c57030d676c3b",
+      "name": "做完啦做完啦我要吃大白饭",
+      "bytes": 141740,
+      "seconds": 2.952,
+      "peak": 0.4226,
+      "createdAt": "2026-11-03T14:15:08.032Z"
+    },
+    {
+      "source": "assets/做完啦做完啦我要吃大白饭2.mp3",
+      "sourceBytes": 23868,
+      "sourceSha256": "85f563a8562efab7407031a21bc9108b614d9a5b2c03b17268cb26404ab460ad",
+      "id": "df83a50bfeb54d4f68b880b57526c100fffcf30b587c00026fae1547fb60e8bb",
+      "name": "做完啦做完啦我要吃大白饭2",
+      "bytes": 141740,
+      "seconds": 2.952,
+      "peak": 0.4506,
+      "createdAt": "2026-11-03T14:15:08.063Z"
+    },
+    {
+      "source": "assets/嘿嘿终于好啦.mp3",
+      "sourceBytes": 16764,
+      "sourceSha256": "1ef5ff454bc87c238356f2897c753576166ce1645a9c95944979ecf0fbab72a2",
+      "id": "7fd9a0732c0fa779617a564b97108eada65a621b3ee548b372ad15cf678ca706",
+      "name": "嘿嘿终于好啦",
+      "bytes": 99116,
+      "seconds": 2.064,
+      "peak": 0.296,
+      "createdAt": "2026-11-03T14:15:08.094Z"
+    },
+    {
+      "source": "assets/终于做好了主人你还在吗.mp3",
+      "sourceBytes": 23868,
+      "sourceSha256": "d0600a391657fa484c2eb1366673f31a23e2884e4c5f31e15f4abb83a672b4f3",
+      "id": "c7e84e5803ab18676038fe17f27293e41db432a0e4235d30702ab8e899ca34b0",
+      "name": "终于做好了主人你还在吗",
+      "bytes": 141740,
+      "seconds": 2.952,
+      "peak": 0.4762,
+      "createdAt": "2026-11-03T14:15:08.126Z"
+    }
+  ]
+}

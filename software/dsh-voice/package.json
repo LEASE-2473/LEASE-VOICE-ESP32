@@ -1,0 +1,64 @@
+{
+  "name": "dsh-lease-voice",
+  "version": "0.6.0",
+  "description": "DSH 语音、完成提示、独立素材播放与 ESP32 扩展",
+  "private": true,
+  "type": "module",
+  "main": "host/index.js",
+  "exports": {
+    ".": "./host/index.js",
+    "./client": "./client/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "host",
+    "client",
+    "core",
+    "providers",
+    "extensions",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node scripts/check.mjs",
+    "preview": "node scripts/preview.mjs",
+    "test:browser": "node tests/ui.browser.mjs",
+    "test:screen": "node tests/screen.browser.mjs",
+    "test:sounds": "node tests/sounds.browser.mjs",
+    "build": "node scripts/build-client.mjs",
+    "test:background": "node tests/background.browser.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-chat",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ],
+      "platform": "web"
+    }
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "playwright": "^1.64.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "dependencies": {
+    "playwright-core": "^1.64.1",
+    "ws": "^8.22.1"
+  },
+  "bundleDependencies": [
+    "ws",
+    "playwright-core"
+  ]
+}

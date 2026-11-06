@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LEASE VOICE · 语音</title>
+  <link rel="stylesheet" href="/api/lease-voice/ui.css">
+  <script type="module" src="/api/lease-voice/ui.js"></script>
+</head>
+<body>
+  <main>
+    <header><div class="mark">LV</div><div><p class="eyebrow">LEASE VOICE</p><h1 id="page-title">让回复，有声音。</h1></div><span class="badge" id="environment">TTS</span></header>
+    <nav aria-label="语音功能"><a id="voice-nav" href="/api/lease-voice/ui">语音</a><a id="extension-nav" href="/api/lease-voice/extensions">扩展 · ESP32</a><a href="/api/lease-voice/screen">屏幕播放</a></nav>
+    <div id="notice" role="status" aria-live="polite">正在读取配置…</div>
+    <section id="voice-page" hidden>
+      <form id="voice-form">
+        <section class="card"><div class="section-head"><span class="step">01</span><div><h2>朗读方式</h2><p>手动播放某条回复，或在新回复完成后自动朗读。</p></div></div>
+          <label class="field">播放位置<select id="output-target"><option value="browser">当前浏览器</option><option value="esp32">ESP32 桌面设备</option></select><span class="hint">选择设备后，语音由 DSH 宿主发送到已配置的 ESP32。</span></label>
+          <div class="mode-options"><label class="mode"><input type="radio" name="mode" value="manual"><span><strong>手动点击</strong><small>点击回复旁的「转语音」</small></span></label><label class="mode"><input type="radio" name="mode" value="auto"><span><strong>自动朗读</strong><small>仅朗读当前会话的新最终回复</small></span></label></div>
+          <p class="hint">浏览器自动朗读前，请在聊天顶部点击「启用声音」；设备播放不需要浏览器声音授权。不朗读思考、工具过程或历史消息。</p>
+        </section>
+        <section class="card"><div class="section-head"><span class="step">02</span><div><h2>语音服务</h2><p>选择协议，再填写服务控制台中的配置。</p></div></div>
+          <label class="field">Provider<select id="provider"><option value="volcengine">火山引擎 · 豆包语音 V3</option><option value="openai">OpenAI 兼容 · Audio Speech</option><option value="minimax">MiniMax · 同步 HTTP</option></select></label>
+          <label class="field" id="transport-field">火山传输协议<select id="transport"><option value="websocket">双向流式 · WebSocket（默认）</option><option value="sse">单向流式 · HTTP SSE</option></select></label>
+          <div class="provider-note" id="provider-note"></div>
+          <label class="field">完整接口地址<input id="endpoint" type="url" required placeholder="https://…"></label>
+          <div class="grid"><label class="field" id="auth-field">鉴权方式<select id="auth-mode"><option value="api-key">新版 · API Key</option><option value="legacy">旧版 · App ID + Access Token</option></select></label><label class="field" id="resource-field">Resource ID<input id="resource-id" placeholder="seed-tts-2.0"></label></div>
+          <label class="field" id="key-field">API Key<input id="api-key" type="password" autocomplete="new-password" placeholder="输入密钥；留空保留已保存密钥"><span class="hint" id="key-state"></span><span><input id="clear-key" type="checkbox"> 清除已保存 API Key</span></label>
+          <div class="grid" id="legacy-fields"><label class="field">App ID<input id="app-id" autocomplete="off"></label><label class="field">Access Token<input id="access-token" type="password" autocomplete="new-password"><span class="hint" id="token-state"></span><span><input id="clear-token" type="checkbox"> 清除已保存 Token</span></label></div>
+          <div class="grid"><label class="field" id="model-field"><span id="model-label">模型 ID</span><input id="model" placeholder="填写已开通的 TTS 模型 ID"></label><label class="field">音色 ID<input id="voice" required placeholder="填写可用音色 ID"></label></div>
+          <label class="field speed-field"><span id="speed-label">语速</span><input id="speed" type="number" required step="1"><span class="hint" id="speed-hint"></span></label>
+          <p class="hint">配置按 provider 分别保存。切换前请保存当前修改；密钥不在页面回显。语音由 AI 合成。</p>
+          <div class="actions"><button class="primary" type="submit">保存语音设置</button><button id="reload" type="button">重新读取</button></div>
+        </section>
+      </form>
+      <section class="card"><div class="section-head"><span class="step">03</span><div><h2>试听</h2><p>先保存配置，再检查音色、语速与播放。</p></div></div>
+        <label class="field">试听文本<textarea id="sample" maxlength="2000" rows="3">你好，这是 LEASE VOICE。你的回复，现在可以听见了。</textarea></label>
+        <div class="actions"><button id="listen" class="primary" type="button">合成并试听</button><button id="enable" type="button">启用声音 / 继续播放</button><button id="stop" type="button">停止</button></div><p class="player-status" id="play-status" role="status">等待朗读</p><label class="field screen-footnote">保存名称<input id="audio-save-name" maxlength="120" value="我的提示音"></label><div class="actions"><button id="save-audio" type="button">保存最近合成为提示素材</button><button id="download-audio" type="button">下载最近合成音频</button></div><p class="hint">不重新调用TTS。提示素材最多60秒；WAV下载最多10分钟。请在停止、离开页面或缓存过期前保存，正文不默认写磁盘。</p>
+      </section>
+    </section>
+    <section id="extension-page" hidden>
+      <section class="card"><h2>屏幕与完成提示</h2><p>独立选择桌宠动画、表情或本地文件，在电脑预览并通过 M3 固件推送，并设置回答完成时的叮声。</p><div class="actions"><a class="button-link" href="/api/lease-voice/screen">管理屏幕播放</a></div><p class="hint">屏幕推送需要 M3 固件；首次连接请用测试色块核对方向与颜色。</p></section>
+      <section class="card intro"><span class="badge">Wi-Fi · 调试协议 v1</span><h2>把声音送到桌面。</h2><p>连接已经烧录配套固件的 ESP32-S3。使用 M2 固件后，在语音设置中选择「ESP32 桌面设备」，即可接收真实语音。</p></section>
+      <form id="device-form" class="card"><div class="section-head"><span class="step">01</span><div><h2>设备连接</h2><p>由 DSH 宿主访问板子的局域网地址。</p></div></div>
+        <label class="field">设备名称<input id="device-name" maxlength="100"></label><label class="field">设备地址<input id="device-endpoint" type="url" placeholder="http://192.168.1.50"></label><label class="field">设备 Token<input id="device-token" type="password" autocomplete="new-password" placeholder="留空保留已保存凭据"><span class="hint" id="device-token-state"></span><span><input id="clear-device-token" type="checkbox"> 清除设备 Token</span></label>
+        <div class="actions"><button class="primary" type="submit">保存设备</button><button id="connect" type="button">连接检查</button><button id="disconnect" type="button">移除连接配置</button></div>
+        <p class="connection-state" id="connection-state" role="status">尚未检查连接</p><dl id="device-info"></dl>
+      </form>
+      <section class="card"><div class="section-head"><span class="step">02</span><div><h2>设备调试</h2><p>测试音不调用 TTS provider；命令是否执行以设备反馈为准。</p></div></div><label class="field">设备音量 <output id="volume-value">50%</output><input id="device-volume" type="range" min="0" max="100" value="50"></label><div class="actions"><button id="set-volume" type="button">设置音量</button><button id="test-tone" type="button">播放设备测试音</button><button id="device-stop" type="button">停止设备播放</button></div><pre id="debug-log" aria-live="polite">等待调试操作…</pre></section>
+    </section>
+    <footer>LEASE VOICE <span>回复 → 语音 → 你的播放设备</span></footer>
+  </main>
+</body>
+</html>

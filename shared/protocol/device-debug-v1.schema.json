@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LEASE VOICE ESP32 调试协议 v1",
+  "description": "仅设备连接与调试；不代表音频推送协议已经实现。",
+  "$defs": {
+    "info": {
+      "type": "object",
+      "required": ["protocol", "kind", "name", "firmware", "capabilities"],
+      "properties": {
+        "protocol": { "const": 1 }, "kind": { "const": "lease-voice-esp32" },
+        "name": { "type": "string", "maxLength": 100 }, "firmware": { "type": "string", "maxLength": 100 },
+        "capabilities": { "type": "array", "items": { "type": "string" }, "maxItems": 12 }
+      }
+    },
+    "command": {
+      "type": "object", "required": ["protocol", "action"],
+      "properties": { "protocol": { "const": 1 }, "action": { "enum": ["test-tone", "stop", "volume"] }, "value": { "type": "integer", "minimum": 0, "maximum": 100 }, "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$" } },
+      "allOf": [{ "if": { "properties": { "action": { "const": "volume" } } }, "then": { "required": ["value"] }, "else": { "not": { "required": ["value"] } } }],
+      "dependentSchemas": { "id": { "properties": { "action": { "const": "stop" } } } },
+      "additionalProperties": false
+    },
+    "ack": { "type": "object", "required": ["protocol", "ok"], "properties": { "protocol": { "const": 1 }, "ok": { "const": true } } }
+  },
+  "oneOf": [{ "$ref": "#/$defs/info" }, { "$ref": "#/$defs/command" }, { "$ref": "#/$defs/ack" }]
+}
