@@ -1,5 +1,54 @@
 # Codex 修改日志
 
+## 2026-11-07：迁移目录后核对公开范围并提交同步
+
+- 用户目标：在当前新目录本地Git提交后同步已有GitHub仓库，核对是否需要扩大上传范围；不操作暂被占用的旧目录。
+- 核对：git fetch origin成功，main与origin/main提交基线均dfdfb90；远程为https://github.com/LEASE-2473/LEASE-VOICE-ESP32.git，沿用原历史，无需重建仓库或强制推送。
+- 公开范围：保留原126文件，新增18项发行/审计文档、固件三BIN+manifest（权威release及包内副本）、Windows工具、配置和页面测试，共144文件；本轮将既有0.7.0代码/文档改动纳入提交。不增加第三方硬件原件、用户音频、data/Token、配对文件、node_modules、artifacts、tgz及日志。根tgz仍作为独立Release附件，不入源码。
+- 修改文件：PROJECT_CONTEXT.md及本日志记录本轮范围审计；同时提交前述任务已完成的源代码、工具、测试和文档改动，保留历史日志。
+- 验证：Git候选文件范围扫描通过，无被排除运行文件或常见密钥格式命中（不等于穷尽安全审计）；两份固件release长度/SHA256全部匹配原manifest。npm run check通过48项；distribution.browser.mjs及profiles.test.mjs重跑通过；git diff --check通过，仅CRLF转换提示。未重复全量测试，既有52项51通过/1项WRX集成断言失败仍保留。
+- 同步方法：先本地提交，再git push origin main，禁止force；执行结果以Git返回和远程SHA核对为准。本轮不安装生产环境、不操作旧目录或设备。
+- 未完成与风险：0.7.0安装包Release附件尚未上传；许可证选择、实物配网验收、WRX集成失败待处理。
+
+
+## 2026-11-07：根目录提供安装包
+
+- 用户目标：明确GitHub源码/安装包边界，把安装包放到项目根目录方便查找。
+- 修改：复制现有0.7.0 tgz到根目录，保留原产物；.gitignore忽略根目录安装包，建议作为Release附件发布。更新PROJECT_CONTEXT.md。
+- 修改文件：根dsh-lease-voice-0.7.0.tgz、.gitignore及两份连续性文档。
+- 验证：Get-FileHash -Algorithm SHA256确认根副本为5c6aeda4430300e957e4250d0ea5f94518614c645c921d79c900a97d3d5e6336，与已审核原包一致；未修改程序，不重复运行功能测试。
+- 未完成与风险：未提交或上传GitHub；原WRX集成失败及实物配网未验收事项不变。
+
+
+## 2026-11-07：0.7.0公开发行范围、页面拆分与USB配对工具打包
+
+- 用户目标：浏览器完整独立使用、ESP32可选；配置多份TTS音色、语音页提示音、设备页折叠扩展；生成可安装tgz，包含Windows工具与固件，串口传递、状态反馈和敏感配对文件导入/导出。
+- 修改：host配置增加命名档保存/切换/删除、重启读取和递归凭据脱敏；UI分语音/配置/设备，沿用先提示后朗读逻辑与SoundPanel导入；设备能力检查控制输出选项及画面入口。Windows配网窗枚举/刷新/手填串口，烧录传-Port，继续wifi-set/status协议，显式导出仅name/endpoint/token，不自动落项目数据；设备页严格校验配对JSON，仅填表后要求保存与连接检查，不记录Token。无固件C修改。
+- 修改文件：software/dsh-voice/{host/config.js,client/index.html,client/ui.js,package.json,package-lock.json,README.md,device/*,tests/profiles.test.mjs,tests/distribution.browser.mjs,tests/sounds.browser.mjs}；firmware/esp32-s3/release三镜像及manifest；tools/{device-setup.ps1,flash-and-setup.ps1,flash-and-setup.cmd,README.md}；.gitignore、docs/DISTRIBUTION.md、根README和中文连续性文档。保留任务开始前已有文档和审计改动。
+- 验证：npm test共52项51通过/1失败，失败为dsh.test.mjs:124 WRX hookObserved断言，外部集成原因未定位；不宣称全过。新增profiles测试通过；node tests/distribution.browser.mjs通过页面拆分、命名配置、无设备状态、配对导入/坏文件/不自动保存/通知无Token/模拟连接能力显示；npm run test:sounds通过（先因旧入口隐藏试听超时，调整至配置页后通过）。npm run build/check通过48项；tools及包内device-setup.ps1 -Check均通过、未打开串口；flash-and-setup.ps1 -Check三镜像校验通过。前期命令目录错误及PS编码问题已修正后重跑，不作为通过结果。
+- 打包：npm pack自动prepack构建检查成功；白名单内含生产依赖、界面、内置叮声代码、device脚本/三BIN/manifest；tar审核176项、3900581字节，无data/tests/artifacts/配对JSON；三镜像长度/哈希及打包脚本字节一致。SHA256 5c6aeda4430300e957e4250d0ea5f94518614c645c921d79c900a97d3d5e6336。
+- 未完成与风险：未提交/上传GitHub、未安装生产DSH、未实际烧录或现场USB配网，串口重枚举/驱动/联网需实物验收；依赖Python/esptool及驱动，不是零依赖安装。配对JSON明文Token须保管，改名文件不受后缀忽略保护；公开分发许可尚需确认。原完整语音/屏幕浏览器套件本轮未重跑，WRX集成失败仍待定位。
+
+
+## 2026-11-06：发布 M3.1 固件 ZIP 至 GitHub Release
+
+- 用户目标：补传可烧录固件包，DELIVERY.md 保留在 ZIP 内，不单独上传。
+- 主要修改：将现有 firmware/esp32-s3/artifacts/0.1.0-m3.1 完整19文件打包，发布 firmware-0.1.0-m3.1 Release；含三个BIN、DELIVERY.md、manifest、校验清单、source.zip及构建诊断文件，不含 backups/acceptance。未重新编译、未连接或烧录设备。
+- 发布地址：https://github.com/LEASE-2473/LEASE-VOICE-ESP32/releases/tag/firmware-0.1.0-m3.1 。ZIP SHA256：841ce8176e92100a1f4455f475048a97a654949cf248c274c8beae33e133dfc3。
+- 修改文件：PROJECT_CONTEXT.md、CODEX_CHANGELOG.md；ZIP及回下载验证文件位于忽略的artifacts目录。保留任务开始前已有README、插件README、审计文档及连续性文档改动，不替用户提交这些改动。
+- 验证：D:/Espressif/python_env/idf5.3_py3.11_env/Scripts/python.exe firmware/esp32-s3/scripts/verify.py firmware/esp32-s3/artifacts/0.1.0-m3.1通过哈希、配置、分区、源码归档和镜像校验；ZIP检查19项且无备份/验收目录；GitHub公开API确认非草稿且唯一ZIP附件uploaded；匿名下载ZIP SHA256与本机一致。
+- 未完成与风险：本轮发布已完成，无设备操作；构建时hardware_tested:false及原DELIVERY历史措辞原样保留，历史实物记录另见上下文。flasher_args.json保留构建子目录路径，Release说明提示手动按DELIVERY地址烧录，自动脚本须核对解压路径。不同硬件兼容与长期稳定性未新增验收。
+
+## 2026-11-06：审计语音、固件与 DSH 部署边界
+
+- 用户目标：厘清当前项目是否保留语音、软件与固件是否拆开部署，以及版本管理收口情况。
+- 主要修改：新增代码与本机部署证据审计，确认单仓库/单VOICE插件/独立固件；修正入口与上下文中的日常0.2.0过期说明。发现实际磁盘0.6.0但profile来源仍为0.1.0，生产运行态未验收，预览与生产数据独立，Git无历史版本标签。
+- 修改文件：docs/DEPLOYMENT_AUDIT_2026-11-06.md、README.md、software/dsh-voice/README.md、PROJECT_CONTEXT.md、CODEX_CHANGELOG.md。
+- 验证：npm.cmd test为51通过/0失败/0跳过；npm.cmd run check为46项通过；Espressif Python运行check_source.py --idf-path D:/Espressif/frameworks/esp-idf-v5.3.1通过静态检查；安装host/client/core/providers/extensions共31文件与源码逐字节一致。核对Git/进程/4318监听/profile声明，未输出凭据。
+- 未完成：统一profile/锁文件来源、已认证生产运行态验收、真实音画与长期稳定测试；本轮未执行部署、重启、刷写或真实TTS。
+- 风险与建议：旧包声明可能导致重装回退；后续先备份完整data并统一发布来源，再固定软件/固件组合基线。报告区分本轮证据与历史实物记录。
+
+
 ## 2026-11-06：初始化本地 Git 并发布 GitHub 公开仓库
 
 - 用户目标：提交当前项目到本地仓库，并发布至 GitHub 公开仓库。

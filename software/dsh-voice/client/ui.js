@@ -1,3 +1,4 @@
+import { SoundPanel } from './sounds.js';
 import { api, VoicePlayer } from './player.js';
 import { taskWav, importSound, downloadWav } from './audio-tools.js';
 
@@ -8,10 +9,11 @@ let dirty = false;
 let deviceDirty = false;
 const volcEndpoints = { websocket: 'wss://openspeech.bytedance.com/api/v3/tts/bidirection', sse: 'https://openspeech.bytedance.com/api/v3/tts/unidirectional/sse' };
 const player = new VoicePlayer();
+const configuration = new URLSearchParams(location.search).get('tab') === 'config';
 const extension = location.pathname.endsWith('/extensions');
 $('voice-page').hidden = extension;
 $('extension-page').hidden = !extension;
-$(extension ? 'extension-nav' : 'voice-nav').classList.add('active');
+$(extension ? 'extension-nav' : configuration ? 'config-nav' : 'voice-nav').classList.add('active');
 $('page-title').textContent = extension ? '语音扩展' : '让回复，有声音。';
 document.title = `LEASE VOICE · ${extension ? '扩展' : '语音'}`;
 const notice = (message, error = false) => { $('notice').textContent = message; $('notice').classList.toggle('error', error); };
@@ -49,6 +51,22 @@ function renderAuth() {
   $('legacy-fields').hidden = !legacy;
   $('key-field').hidden = legacy;
 }
+const soundPanel = new SoundPanel(player, notice, () => {}); soundPanel.bind();
+$('provider-card').hidden = !configuration;
+$('sample-card').hidden = !configuration;
+$('mode-card').hidden = configuration;
+$('completion-form').closest('section').hidden = extension || configuration;
+let connected = false;
+function deviceOptions(ok) {
+  connected = ok;
+  for (const id of ['output-target', 'completion-target']) {
+    const select = $(id), option = select.querySelector('option[value=esp32]');
+    option.hidden = !ok; option.disabled = !ok;
+    if (!ok) select.value = 'browser';
+  }
+  if (ok) { $('output-target').value = config.outputTarget || 'browser'; $('completion-target').value = config.completion?.target || 'browser'; }
+  $('display-link').hidden = !ok;
+}
 async function load() {
   config = await api('config');
   document.querySelector(`input[name=mode][value=${config.mode}]`).checked = true;
@@ -56,6 +74,15 @@ async function load() {
   $('output-target').querySelector('option[value=esp32]').disabled = config.deviceAudioProtocolVersion !== 1;
   $('provider').value = config.activeProvider;
   renderProvider();
+  $('profiles').replaceChildren(...Object.keys(config.profiles || {}).map(name => new Option(name, name)));
+  $('completion-enabled').checked = config.completion?.enabled || false;
+  $('completion-target').value = config.completion?.target || 'browser';
+  $('completion-volume').value = config.completion?.volume ?? 35;
+  await soundPanel.load(config);
+  deviceOptions(false);
+  if (config.device.endpoint && config.device.tokenSet) {
+    try { const info = await api('device-debug', { action: 'info' }); deviceOptions(info.capabilities.includes('audio-pcm16')); } catch {}
+  }
   $('device-name').value = config.device.name;
   $('device-endpoint').value = config.device.endpoint;
   $('device-token').value = ''; $('clear-device-token').checked = false;
@@ -81,7 +108,7 @@ $('provider').addEventListener('change', () => {
 });
 $('auth-mode').addEventListener('change', renderAuth);
 $('transport').addEventListener('change', () => { $('endpoint').value = volcEndpoints[$('transport').value]; dirty = true; renderTransport(); });
-$('voice-form').addEventListener('input', () => { dirty = true; });
+$('voice-form').addEventListener('input', e => { if (!['profile-name', 'profiles'].includes(e.target.id)) dirty = true; });
 $('voice-form').addEventListener('submit', event => {
   event.preventDefault();
   void operate(async () => {
@@ -120,6 +147,7 @@ async function debug(action, value) {
     $('connection-state').textContent = action === 'info' ? '已连接 · 协议 v1' : '设备已接受命令；请观察实物';
     $('debug-log').textContent = `[${at}] ${action}\n${JSON.stringify(result, null, 2)}`;
     if (action === 'info') {
+      deviceOptions(result.capabilities.includes('audio-pcm16'));
       $('device-info').replaceChildren();
       for (const [label, value] of [['名称', result.name], ['固件版本', result.firmware], ['能力', result.capabilities.join('、') || '未声明']]) {
         const dt = document.createElement('dt'); dt.textContent = label;
@@ -129,6 +157,7 @@ async function debug(action, value) {
     }
     notice('调试操作完成。');
   } catch (error) {
+    deviceOptions(false);
     $('connection-state').textContent = '连接或命令失败'; $('device-info').replaceChildren();
     $('debug-log').textContent = `[${at}] ${action}\n${error.message}`;
     throw error;
@@ -145,3 +174,39 @@ $('test-tone').addEventListener('click', () => void operate(() => debug('test-to
 $('device-stop').addEventListener('click', () => void operate(() => debug('stop')));
 window.addEventListener('pagehide', () => player.dispose());
 void load().catch(error => notice(error.message, true));
+
+$('save-mode').addEventListener('click', () => void operate(async () => { await api('config', { mode: document.querySelector('input[name=mode]:checked').value }); dirty = false; notice('朗读方式已保存'); }));
+$('save-output').addEventListener('click', () => void operate(async () => { await api('config', { outputTarget: $('output-target').value, completion: { target: $('output-target').value } }); notice('播放设备已保存'); }));
+for (const action of ['save', 'select', 'delete']) $('profile-' + action).addEventListener('click', () => void operate(async () => {
+  if (action === 'save' && dirty) throw new Error('请先保存语音设置，再保存为配置档');
+  await api('config', { profile: { action, name: action === 'save' ? $('profile-name').value : $('profiles').value } }); await load(); notice('配置档已更新');
+}));
+$('completion-form').addEventListener('input', () => { $('completion-volume-value').textContent = $('completion-volume').value + '%'; });
+$('completion-form').addEventListener('submit', e => { e.preventDefault(); void operate(async () => {
+  await api('config', { completion: { enabled: $('completion-enabled').checked, target: $('completion-target').value, volume: Number($('completion-volume').value), sound: $('completion-sound').value, clipIds: soundPanel.selected() } }); notice('提示设置已保存');
+}); });
+$('completion-test').addEventListener('click', () => player.enqueue({ chime: true }));
+$('completion-stop').addEventListener('click', () => player.stop());
+
+$('pairing-import').addEventListener('change', async e => {
+  const file = e.target.files[0]; e.target.value = '';
+  if (!file) return;
+  try {
+    if (file.size > 16384) throw new Error();
+    const record = JSON.parse(await file.text());
+    if (!record || Array.isArray(record) || Object.keys(record).sort().join(',') !== 'endpoint,name,token') throw new Error();
+    if (typeof record.name !== 'string' || record.name.length > 100 || !record.name.trim() ||
+        typeof record.token !== 'string' || !record.token || record.token.length > 4096 || /[\r\n\0]/.test(record.token) ||
+        typeof record.endpoint !== 'string') throw new Error();
+    const endpoint = new URL(record.endpoint);
+    if (!['http:', 'https:'].includes(endpoint.protocol) || endpoint.username || endpoint.password || endpoint.search || endpoint.hash || endpoint.pathname !== '/') throw new Error();
+    $('device-name').value = record.name;
+    $('device-endpoint').value = endpoint.origin;
+    $('device-token').value = record.token;
+    $('clear-device-token').checked = false;
+    deviceDirty = true; deviceOptions(false);
+    $('device-info').replaceChildren();
+    $('connection-state').textContent = '配对文件已填入，尚未保存或检查';
+    notice('请核对设备地址后保存设备，再点击连接检查。配对Token不会显示在通知或日志中。');
+  } catch { notice('配对文件无效：需要仅包含 name、endpoint、token 的JSON对象。', true); }
+});

@@ -1,0 +1,47 @@
+{
+  "version": "0.1.0-m3.1",
+  "milestone": "M3",
+  "idf_version": "v5.3.1-dirty",
+  "idf_commit": "c8fc5f643b7a7b0d3b182d3df610844e3dc9bd74",
+  "idf_version_file_sha256": "86896b8591d7c81f60828c9da5621eb9eca493867d04f9c7680c83a7220ff27b",
+  "idf_worktree_dirty": true,
+  "compiler": "xtensa-esp-elf-gcc.exe (crosstool-NG esp-13.2.0_20240530) 13.2.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+  "python_version": "3.11.2 (tags/v3.11.2:878ead1, Feb  7 2023, 16:38:35) [MSC v.1934 64 bit (AMD64)]",
+  "target": "esp32s3",
+  "image_type": "separate",
+  "hardware_tested": false,
+  "flash_settings": {
+    "flash_mode": "dio",
+    "flash_size": "16MB",
+    "flash_freq": "40m"
+  },
+  "extra_esptool_args": {
+    "after": "hard_reset",
+    "before": "default_reset",
+    "stub": true,
+    "chip": "esp32s3"
+  },
+  "images": [
+    {
+      "file": "bootloader.bin",
+      "address": "0x0",
+      "size": 21024,
+      "sha256": "093ff2012239158ca419cdaf2df3879921d5ee100ff7451ef892f0c33c6c1a64",
+      "source": "build/bootloader/bootloader.bin"
+    },
+    {
+      "file": "lease_voice.bin",
+      "address": "0x10000",
+      "size": 944736,
+      "sha256": "5e656feefea1407e31fc2b2e8144846c3e869cb352786e81d1d9fbeac8b12530",
+      "source": "build/lease_voice.bin"
+    },
+    {
+      "file": "partition-table.bin",
+      "address": "0x8000",
+      "size": 3072,
+      "sha256": "fd8026bff850ca0dee41c41305160317fffe604dda30a9bd5a701ac82d96fa17",
+      "source": "build/partition_table/partition-table.bin"
+    }
+  ]
+}

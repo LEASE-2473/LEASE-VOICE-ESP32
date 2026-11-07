@@ -1,6 +1,6 @@
 {
   "name": "dsh-lease-voice",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "DSH 语音、完成提示、独立素材播放与 ESP32 扩展",
   "private": true,
   "type": "module",
@@ -17,7 +17,11 @@
     "providers",
     "extensions",
     "cordis.patch.yml",
-    "README.md"
+    "README.md",
+    "device/*.cmd",
+    "device/*.ps1",
+    "device/release/*.bin",
+    "device/release/manifest.json"
   ],
   "engines": {
     "node": ">=22.13.0"
@@ -30,7 +34,8 @@
     "test:screen": "node tests/screen.browser.mjs",
     "test:sounds": "node tests/sounds.browser.mjs",
     "build": "node scripts/build-client.mjs",
-    "test:background": "node tests/background.browser.mjs"
+    "test:background": "node tests/background.browser.mjs",
+    "prepack": "npm run build && npm run check"
   },
   "dsh": {
     "bundle": {

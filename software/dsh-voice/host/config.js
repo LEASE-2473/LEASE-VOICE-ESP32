@@ -7,7 +7,7 @@ const secrets = ['apiKey', 'accessToken'];
 export const defaultConfig = () => ({ version: 1, mode: 'manual', outputTarget: 'browser', completion: { enabled: false, target: 'browser', volume: 35, sound: 'ding', clipIds: [] }, activeProvider: 'volcengine', providers: Object.fromEntries(PROVIDERS.map(p => [p.id, { ...p, apiKey: '', appId: '', accessToken: '' }])), device: { endpoint: '', token: '', name: '我的 ESP32-S3' } });
 export function publicConfig(config) {
   const copy = structuredClone(config);
-  for (const provider of Object.values(copy.providers)) {
+  for (const provider of [...Object.values(copy.providers), ...Object.values(copy.profiles || {}).flatMap(p => Object.values(p.providers))]) {
     for (const key of secrets) { provider[`${key}Set`] = !!provider[key]; delete provider[key]; }
   }
   copy.device.tokenSet = !!copy.device.token;
@@ -85,6 +85,21 @@ export function updateConfig(current, input) {
     if (input.device.clearToken === true) next.device.token = '';
     if (input.device.token) next.device.token = string(input.device.token, 4096);
   }
+  next.profiles ||= {};
+  if (input.profile) {
+    const { action, name } = input.profile;
+    const key = string(name, 80);
+    if (!key || ['__proto__', 'constructor', 'prototype'].includes(key)) throw new Error('配置档名称无效');
+    if (action === 'save') {
+      if (!Object.hasOwn(next.profiles, key) && Object.keys(next.profiles).length >= 50) throw new Error('最多保存50份配置');
+      next.profiles[key] = { activeProvider: next.activeProvider, providers: structuredClone(next.providers) };
+    } else if (action === 'select') {
+      if (!Object.hasOwn(next.profiles, key)) throw new Error('配置档不存在');
+      next.activeProvider = next.profiles[key].activeProvider;
+      next.providers = structuredClone(next.profiles[key].providers);
+    } else if (action === 'delete') delete next.profiles[key];
+    else throw new Error('配置档操作无效');
+  }
   return next;
 }
 
@@ -105,6 +120,15 @@ export function createConfigStore(directory) {
         } else provider.transport = /^wss?:/.test(provider.endpoint) ? 'websocket' : 'sse';
       }
       value = updateConfig(value, { provider });
+    }
+  }
+  if (existsSync(file)) {
+    const disk = JSON.parse(readFileSync(file, 'utf8'));
+    for (const [name, profile] of Object.entries(disk.profiles || {})) {
+      let checked = defaultConfig();
+      for (const provider of Object.values(profile.providers || {})) checked = updateConfig(checked, { provider });
+      checked = updateConfig(checked, { activeProvider: profile.activeProvider, profile: { action: 'save', name } });
+      value.profiles = { ...value.profiles, ...checked.profiles };
     }
   }
   return {

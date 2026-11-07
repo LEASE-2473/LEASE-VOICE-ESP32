@@ -1,8 +1,27 @@
 # LEASE VOICE / ESP32 项目上下文
 
+## 2026-11-07 当前开发状态（优先于历史部署描述）
+
+- 当前目录沿用原Git历史，origin为LEASE-2473/LEASE-VOICE-ESP32；fetch核对main基线同为dfdfb90，没有迁移造成的新仓库或远程分叉。公开范围为原126文件加18项发行说明、测试、USB工具和固定固件（共144文件），无删除。源码沿main提交推送，根tgz作为单独Release附件交付，不提交包历史。
+
+- 仓库软件已开发至0.7.0，日常DSH磁盘安装及运行态未在本轮更新。设置分为语音、配置、设备；提示音管理可直接在语音页完成，同供应商支持多份命名配置，凭据仍只在宿主保存、公开API脱敏。
+- 无设备时设备选择仅浏览器，认证检查发现audio-pcm16能力后显示ESP32；扩展details默认折叠，连接后出现画面管理入口。浏览器用户无需USB工具或硬件。
+- 固件源码未改；firmware/esp32-s3/release保留既有M3.1三BIN及原manifest。插件device目录分发Windows配网/烧录脚本和镜像，不将WinForms编入固件。烧录依赖Python/esptool4.8.1、驱动，串口传给配网窗；沿用wifi-set/status协议。
+- 配网工具枚举/刷新串口、联网状态反馈，显式导出仅name/endpoint/token的配对JSON，不再自动保存项目data。*.pairing.json忽略；设备页导入只填表，核对保存后检查连接。Token不得进Git/日志/发行包；device发行清单只允许固定脚本和镜像。
+- 最新本地安装包放在项目根目录 `dsh-lease-voice-0.7.0.tgz`，与artifacts副本SHA256一致；根tgz已忽略，发布时作为GitHub Release附件，不加入源码历史。
+- 发行方法与限制见docs/DISTRIBUTION.md；0.7.0 tgz已本地生成并审核，尚未作为GitHub Release附件发布；未生产安装、未实际烧录/USB配网。开源许可证仍需用户确认。
+- 验证：52项单测51通过，WRX请求钩子观测断言失败（dsh.test.mjs:124）；未修改外部WRX/宿主规避。新增页面/配对导入/模拟设备连接及提示音浏览器套件通过，48项静态检查通过，两个配网窗Check及固件离线哈希通过。实物端到端和长期联网仍待验收。
+
+
 2026-11-04部署状态：用户要求直接覆盖现有VOICE0.2.0，磁盘版已原位更新0.6.0并迁入6段语音及屏幕设置，providers凭据哈希不变；备份 D:/LEASE AI Software/Deepseek Harness/backups/voice-direct-0.6.0-20261104-1793722223707。未重启DSH，运行态待用户重启加载。完成提示配置为ESP32/随机6段/75%，开关保留关闭，重启后用户在DSH设置中开启；4318测试后台已停止避免设备争抢。安装版27JS语法、host导入、6段WAV校验通过；apply-all仅persona-read历史旧路径失败，核心通过。原profile来源元数据未改，后续重装要保留data并使用新包。
 
-核对日期：2026-11-04。软件开发版0.6.0已实现电脑端独立后台动画播放，离开/关闭控制页仍继续；原0.5.0语音库/先提示后TTS保留。4318本机服务已重载为隐藏Node33920，复用原配置/6段语音/列表。真实pet后台启动后关闭整个测试浏览器，30秒内帧数16→157、实物drawn3037→3178、流ID不变，当前保留后台播放。原样保留用户最新配置：160×128、swapXY/mirrorX true、mirrorY false、偏移0、bgr/invert false、cover/zoom1.1、黑底、8项列表（与此前现场基线不同，未擅自恢复）。固件仍M3.1，无需重刷；日常DSH仍0.2.0，未升级/重启。工作/空闲/完成自动切换尚未做。历史见CODEX_CHANGELOG.md。
+## 2026-11-06 当前审计状态
+
+- 当前仓库包含一个 DSH 插件（语音/TTS、完成提示音、屏幕编排）和独立烧录的 ESP32 固件，不包含 DSH 宿主或 WRX 源码。源码统一管理，插件与固件分别部署。
+- 源码及日常磁盘安装均0.6.0，31个程序文件逐字节一致；profile来源仍指0.1.0 tgz，存在重装回退风险。生产进程是否加载新版本轮未认证验收，不再将磁盘版写成0.2.0。
+- 4318预览仍由PID33920监听；预览与生产各有独立data，均manual/完成提示关闭。本轮未确认画面是否正在播放。历史实物版本M3.1，本轮未连接设备。
+- Git仅初始化提交dfdfb90，无版本标签；旧tgz仅本机保存。详见[部署审计](docs/DEPLOYMENT_AUDIT_2026-11-06.md)。
+- 本轮51项测试全过/0跳过、46项脚本与清单检查通过；固件SDK静态检查通过，未重编译/刷写/重启或改生产数据。
 
 ## 项目目标与范围
 
@@ -14,7 +33,7 @@
 
 ## 工作区与背景
 
-- 项目根目录：`D:/LEASE AI Project/LEASE-VOICE-ESP32`，已初始化 Git 仓库，主分支 main；包含插件源码、测试与软件/固件/协议/素材目录。公开仓库为 https://github.com/LEASE-2473/LEASE-VOICE-ESP32。
+- 项目根目录：`D:/LEASE AI Project/DSH LEASE Extensions/dsh-voice-esp32`，已初始化 Git 仓库，主分支 main；包含插件源码、测试与软件/固件/协议/素材目录。公开仓库为 https://github.com/LEASE-2473/LEASE-VOICE-ESP32。
 - `D:/LEASE AI Project/LEASE-WRX`：独立 LEASE-WRX 插件源码，作为背景只读参考。
 - `D:/LEASE AI Software/Deepseek Harness`：实际 DSH 安装与运行目录，用户已授权同步 VOICE 修正；用户已授权备份 VOICE、同步及重启；已完成。设备地址/Token/输出目标已保存，provider 凭据未改。
 - `D:/LEASE AI Project/Remote Server`：服务与网络维护项目，本任务只读。
@@ -23,7 +42,7 @@
 ## 技术栈与环境
 
 - 已核实本机 Node.js `v24.19.0`、npm `11.17.0`，安装版 DSH `0.2.1-rc.5`。
-- 软件使用JavaScript ESM、Node内置模块、DSH/Cordis插件，客户端使用宿主React/slots。源码0.6.0、日常安装0.2.0；客户端修改后运行npm.cmd run build，ws/playwright-core生产依赖随包分发；后台使用已安装Edge，不下载浏览器。
+- 软件使用JavaScript ESM、Node内置模块、DSH/Cordis插件，客户端使用宿主React/slots。源码及日常磁盘安装0.6.0（运行态待验收）；客户端修改后运行npm.cmd run build，ws/playwright-core生产依赖随包分发；后台使用已安装Edge，不下载浏览器。
 - 开发依赖 React/ReactDOM、Playwright、esbuild 用于真实 React/browser 测试；package-lock.json 固定版本。浏览器验收默认使用本机 Edge，可用 EDGE_PATH 覆盖。
 - 固件 M0 `0.1.0-m0.2` 已使用用户 D:/Espressif 环境实际编译、打包和离线校验通过；SDK D:/Espressif/frameworks/esp-idf-v5.3.1，工具根 D:/Espressif，Python D:/Espressif/python_env/idf5.3_py3.11_env/Scripts/python.exe。实际 SDK v5.3.1-dirty、GCC13.2.0、Python3.11.2；dirty 为安装包展开 Git 符号链接，已逐项字节核对并归档审计，未修改 SDK。禁止自行下载安装，保留此前 C 盘下载文件。
 - 实物为 42 脚 ESP32-S3 N16R8 核心板、智能音频扩展板、8Ω/3W 喇叭及 1.8 寸彩屏。芯片识别为 revision v0.2、16MB Flash、8MB PSRAM、40MHz 晶振。
@@ -81,7 +100,7 @@
 - 在 `software/dsh-voice/` 运行 `npm.cmd ci`、`npm.cmd run build`、`npm.cmd test`、`npm.cmd run check`、`npm.cmd run test:browser`、`npm.cmd run test:screen`、`npm.cmd run test:sounds`、`npm.cmd run test:background`。根目录node tools/import-completion-sounds.mjs用现有Edge离线导入assets，默认目标data/screen-preview；外部导入后须重载控制服务读取索引。
 - `npm.cmd run preview` 仅监听回环 4318，临时配置、模拟音频、无 DSH 认证，界面标注隔离预览；不要填真实凭据。日常插件不使用该服务器。
 - `DSH_HOME` 可为预览指定实际素材来源；`LEASE_VOICE_PREVIEW_DATA_DIR` 可指定独立预览数据目录，不指定则使用临时目录。屏幕预览路径为 /api/lease-voice/screen。
-- 本机4318常驻预览已重载0.6.0，隐藏Node33920，仅回环；核实16604是原项目服务后仅重载该进程，原config.json/screen.json/sounds.json哈希不变，6段语音/设备/provider/画面设置保留。通过实际控制页加载、后台API与实体设备计数验证，当前后台保留真实pet循环播放，服务退出或断网后需重新开始。日常DSH未升级/重启。
+- 本机4318常驻预览已重载0.6.0，隐藏Node33920，仅回环；核实16604是原项目服务后仅重载该进程，原config.json/screen.json/sounds.json哈希不变，6段语音/设备/provider/画面设置保留。通过实际控制页加载、后台API与实体设备计数验证，当时后台保留真实pet循环播放（11月6日未复核播放状态），服务退出或断网后需重新开始。日常磁盘插件随后已于11月4日覆盖0.6.0，生产运行态待验收。
 - `npm.cmd pack --ignore-scripts --pack-destination artifacts` 生成可审查的插件包；发布清单不包含开发依赖、测试、预览脚本、密钥、缓存或固件。
 - 0.4.0已有41项自动测试通过、无跳过，保留真实本机Session/Connection和WRX隔离对照；新增RGB565色值、真实HTTP握手/153600字节帧、旧固件/坏确认/错误Token、背压/取消/旧stop测试。浏览器验证canvas→编码→宿主→Node协议模拟器的色块、单帧背压和停止，保留叮声/素材/移动布局回归，无JS/CSP错误。Node模拟器不执行ESP32 C/SPI；本机106个pet/73张meme及VP9解码已验证，不当作实物证据。
 - 0.4.1本轮npm test仍41项全过/0跳过，check37个JS/MJS通过，build通过；test:screen增加缩放实际像素覆盖与保存/刷新验证并通过，无JS/CSP错误。实物另外完成两段120秒真实pet页面→固件推送，约4.8fps，用户确认方向/大小；显示时不完整音频上传0.078秒取消且drawn继续推进。语音缓存重放到completed，尚未再次获得本轮声学反馈。
@@ -96,8 +115,8 @@
 
 - 已完成：设置内双页面注册、三种 provider 适配、手动/自动朗读核心、取消/队列/缓存、设备调试页、协议说明、隔离与浏览器测试。
 - M3.1已烧录：COM3/115200仅0x10000应用944736字节，51.3秒、Hash of data verified，最大末地址0xf6a60在原首1MiB备份内。bootloader/分区未写，NVS配网与Token保留，设备在线且display/frame能力可用。固件C/脚本本轮未改，不重编译；冻结source.zip保留构建时快照，当前固件README/docs仅更新实物结果，所以不再声称全部文档逐字节一致。manifest硬件false不改，acceptance另记录现场证据。
-- DSH 当前：0.2.0 已备份至安装根 backups/voice-hardware-20261102-0.2.0、同步41个包文件并经授权原入口管理员重启成功；运行态 config 与 device-debug 均200，目标为 ESP32。provider 配置保留。离线依赖安装被其他插件缺失 tarball 阻断，profile 包/锁/patch 未变，安装来源元数据仍为旧包；后续重装须使用新 tgz 并保留 data。
-- 未完成：0.6.0日常部署、工作/空闲/完成动画分组及DSH生命周期切换、后台语音事件调度、断网自动重连与进程重启恢复、实际音画同时播放、异常帧/长期堆稳定、USB动画、BLE/STT。Python每帧新连接的色块测试分别461帧后超时、478帧后WinError10053，设备仍在线且断流清黑；改用复用连接后3秒13帧/单端口短测通过，两段120秒浏览器无该错误，根因及长期表现未确定。
+- DSH 历史（0.2.0阶段，后已覆盖0.6.0）：0.2.0 已备份至安装根 backups/voice-hardware-20261102-0.2.0、同步41个包文件并经授权原入口管理员重启成功；运行态 config 与 device-debug 均200，目标为 ESP32。provider 配置保留。离线依赖安装被其他插件缺失 tarball 阻断，profile 包/锁/patch 未变，安装来源元数据仍为旧包；后续重装须使用新 tgz 并保留 data。
+- 未完成：0.6.0生产运行态验收与安装来源统一、工作/空闲/完成动画分组及DSH生命周期切换、后台语音事件调度、断网自动重连与进程重启恢复、实际音画同时播放、异常帧/长期堆稳定、USB动画、BLE/STT。Python每帧新连接的色块测试分别461帧后超时、478帧后WinError10053，设备仍在线且断流清黑；改用复用连接后3秒13帧/单端口短测通过，两段120秒浏览器无该错误，根因及长期表现未确定。
 - 待确认：智能扩展板实际 PCB 版本、屏幕与音频器件型号；火山凭据由用户在正式 UI 填写，不在聊天中索取。固件先交付启动版本，再验收 Wi-Fi 与测试音，BLE 配网作为后续阶段。
 - 风险：本机宿主存在定制补丁；浏览器限制自动播放；不同 provider 的请求/音频格式不同；远程浏览器与 ESP32 的网络可达性不同；第三方动画不能直接当 MCU 固件资源使用。详见架构文档。
 
@@ -108,3 +127,8 @@
 - GitHub：https://github.com/LEASE-2473/LEASE-VOICE-ESP32，公开仓库，main 分支。
 - 不提交 data、凭据、依赖、缓存、构建及验收产物；hardware 第三方资料与 assets/*.mp3 原件留在本机，仅公开说明及素材清单。克隆后需自行准备硬件参考资料与完成提示语音。
 - 本轮仅建立版本管理与公开发布，未修改业务代码、部署或设备状态。
+
+## 固件下载（2026-11-06）
+
+- M3.1完整交付ZIP已发布：https://github.com/LEASE-2473/LEASE-VOICE-ESP32/releases/tag/firmware-0.1.0-m3.1 。DELIVERY.md包含在ZIP内，不单独发布。
+- 保持构建时19文件及原校验清单；离线verify与公开下载哈希核对通过。固件未重编译，设备未操作；原flasher_args路径需按解压目录核对，烧录地址以DELIVERY.md为准。

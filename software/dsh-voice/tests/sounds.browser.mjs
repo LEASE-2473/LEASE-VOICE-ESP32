@@ -17,7 +17,7 @@ const page = await browser.newPage({ viewport: { width: 1100, height: 1000 } });
 const errors = []; page.on('pageerror', error => errors.push(error.message));
 const notice = text => page.waitForFunction(text => document.getElementById('notice').textContent.includes(text), text);
 try {
-  await page.goto(`${preview.url}/api/lease-voice/ui`); await notice('配置已读取');
+  await page.goto(`${preview.url}/api/lease-voice/ui?tab=config`); await notice('配置已读取');
   await page.locator('#download-audio').click(); await notice('请先完成一次合成');
   await page.locator('#listen').click();
   await page.waitForFunction(() => document.getElementById('play-status').textContent === '播放完成');

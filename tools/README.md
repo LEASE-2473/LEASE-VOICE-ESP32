@@ -19,3 +19,5 @@
 `node tools/test-device-animation.mjs` 启动独立回环预览及无界面浏览器，使用真实pet素材和已确认的160×128、swapXY/mirrorX/mirrorY配置，完整走页面→RGB565→宿主→设备。默认120秒；可用LEASE_ANIMATION_SECONDS、LEASE_ANIMATION_FIT、LEASE_ANIMATION_ZOOM调整时长/适配/缩放。运行数据独立存tools/data/screen-acceptance，只保存设备配置，不复制provider凭据。报告/截图在固件artifacts/acceptance；不重启DSH，结束停止画面并关闭临时服务器/浏览器。
 
 长期手动控制使用本机 http://127.0.0.1:4318/api/lease-voice/screen。当前项目控制页已保存设备和实物方向，cover/zoom1为默认，预览设置支持0.5～3倍缩放。只在回环访问，不把这个无DSH认证的开发服务暴露出去；日常DSH插件仍需另行升级。
+
+配网窗支持枚举/刷新串口，烧录入口将选择的串口传入配网窗。联网后可导出仅含name/endpoint/token的 *.pairing.json，到插件设备页导入、核对保存并连接检查。文件含明文Token，禁止提交Git、日志或发行包；工具不再默认保存tools/data/device.json。烧录依赖已安装Python/esptool4.8.1及驱动，普通浏览器用户无需运行。

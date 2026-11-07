@@ -1,0 +1,22 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createConfigStore } from '../host/config.js';
+test('命名配置支持同供应商不同音色，重启保留，所有凭据脱敏', () => {
+ const dir = mkdtempSync(join(tmpdir(), 'voice-profiles-'));
+ let store = createConfigStore(dir);
+ store.save({provider:{id:'openai',voice:'first',apiKey:'private-key'},activeProvider:'openai',profile:{action:'save',name:'音色一'}});
+ store.save({provider:{id:'openai',voice:'second'},profile:{action:'save',name:'音色二'}});
+ assert.ok(!JSON.stringify(store.public()).includes('private-key'));
+ store = createConfigStore(dir);
+ store.save({profile:{action:'select',name:'音色一'}});
+ assert.equal(store.get().providers.openai.voice,'first');
+ assert.equal(store.get().providers.openai.apiKey,'private-key');
+ store.save({profile:{action:'select',name:'音色二'}});
+ assert.equal(store.get().providers.openai.voice,'second');
+ assert.throws(()=>store.save({profile:{action:'save',name:'__proto__'}}));
+ store.save({profile:{action:'delete',name:'音色一'}});
+ assert.throws(()=>store.save({profile:{action:'select',name:'音色一'}}));
+});
