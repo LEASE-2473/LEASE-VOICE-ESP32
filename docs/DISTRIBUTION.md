@@ -27,3 +27,6 @@ Windows 窗体只在电脑上运行，不编译进固件；串口仍使用 wifi-
 
 ### 0.7.2 本地修正
 设备页展开ESP32配置后，首张卡片为「画面推送 · ESP32 屏幕」，点击「打开画面推送与测试」进入素材库、播放列表、测试色块和后台播放。入口不再被连接状态隐藏；不新增宿主设置面板。包含Windows配网-Port重名修复；新版包位于项目根目录，并已上传[v0.7.2 Release](https://github.com/LEASE-2473/LEASE-VOICE-ESP32/releases/tag/v0.7.2)。
+
+### 0.7.3 配网窗退出修复
+[正式Release及安装包](https://github.com/LEASE-2473/LEASE-VOICE-ESP32/releases/tag/v0.7.3)。窗口标题为LEASE VOICE设备配网 · 0.7.3，新增取消/释放串口及Esc；已打开的旧工具不会热更新。异常类型、重复释放与实际FormClosing离线检查通过，实际USB配网仍须验收。

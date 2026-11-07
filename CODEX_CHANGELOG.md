@@ -1,5 +1,15 @@
 # Codex 修改日志
 
+## 2026-11-07：完成0.7.3公开交付与卡死窗口处置记录
+
+- 用户目标：确认关闭修复是否真正交付，补完GitHub Release，不把离线检查等同实物功能验收。
+- 结果：369049f已推送main；v0.7.3发布为latest，附件dsh-lease-voice-0.7.3.tgz为3902081字节；根目录保留同一包。上轮按PID2448且进程名powershell/窗口标题LEASE设备配网精确匹配，结束用户卡死配网进程并确认退出，未终止其他Shell或DSH。
+- 验证：GitHub API确认draft=false、附件大小/digest正确；初次用草稿阶段返回的下载链接404，重新获取正式Release资产URL后公开下载成功，SHA256为2288c0f3a9a534ff42839d3bf46e18076234f5e066f0006a8a0936941671547d。未输出凭据。仅更新交付文档，git diff --check通过并提交推送后核对远程与工作区。
+- 修改文件：PROJECT_CONTEXT.md、CODEX_CHANGELOG.md、README.md、docs/DISTRIBUTION.md；未改已发布包内容或设备配置。
+- 发布：https://github.com/LEASE-2473/LEASE-VOICE-ESP32/releases/tag/v0.7.3 。
+- 未完成与风险：已完成代码修复/离线关闭回归/页面回归/提交/推送/发布；实际设备USB配网、联网后配对导出和导入全链路仍未验收，不声称整个工具已实物验证。生产DSH未安装新版；既有WRX集成失败及许可证问题仍保留。
+
+
 ## 2026-11-07：0.7.3修复配网窗关闭异常并补生命周期回归
 
 - 用户目标：配网工具关闭时弹出System.String不包含Dispose的未处理异常，需要可靠关闭并提交、推送、发布修正附件。
