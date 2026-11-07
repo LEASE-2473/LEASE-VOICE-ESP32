@@ -4,12 +4,13 @@
 
 - 当前目录沿用原Git历史，origin为LEASE-2473/LEASE-VOICE-ESP32；fetch核对main基线同为dfdfb90，没有迁移造成的新仓库或远程分叉。公开范围为原126文件加18项发行说明、测试、USB工具和固定固件（共144文件），无删除。源码已通过3e6fe7f提交并推送origin/main；根tgz计划作为单独Release附件交付，不提交包历史。
 
-- 仓库软件已开发至0.7.2，日常DSH磁盘安装及运行态未在本轮更新。设置分为语音、配置、设备；提示音管理可直接在语音页完成，同供应商支持多份命名配置，凭据仍只在宿主保存、公开API脱敏。
+- 仓库软件已开发至0.7.3，日常DSH磁盘安装及运行态未在本轮更新。设置分为语音、配置、设备；提示音管理可直接在语音页完成，同供应商支持多份命名配置，凭据仍只在宿主保存、公开API脱敏。
 - 无设备时设备选择仅浏览器，认证检查发现audio-pcm16能力后显示ESP32；扩展details默认折叠，展开后始终显示「画面推送」入口与连接/能力说明，不因连接失败隐藏；音频与屏幕能力分别判断。打开画面页可先导入/预览，实体推送仍由宿主检查M3能力并要求用户明确发起。浏览器用户无需USB工具或硬件。
 - 固件源码未改；firmware/esp32-s3/release保留既有M3.1三BIN及原manifest。插件device目录分发Windows配网/烧录脚本和镜像，不将WinForms编入固件。烧录依赖Python/esptool4.8.1、驱动，串口传给配网窗；沿用wifi-set/status协议。
 - 0.7.2修复Windows配网Port参数与script:port变量同名导致串口对象被强转字符串的缺陷，参数改InitialPort并保留-Port别名；离线Check验证对象类型及参数传递，不打开串口。当前电脑识别CH340 COM3；未实际发wifi-set或烧录，实物配网仍待用户重试。0.7.2修复已提交1ec7f20并推送main；v0.7.2已发布为最新Release，附件公开回下载SHA256一致。
+- 0.7.3补齐配网窗异常退出：独立serialConnection变量、类型校验与幂等Close/Dispose清理，FormClosing及finally释放串口/Timer，新增取消按钮（Esc），窗口标题带版本；Check实际触发隐藏窗体关闭并注入字符串串口状态。两份工具Check通过，未实际占用串口。
 - 配网工具枚举/刷新串口、联网状态反馈，显式导出仅name/endpoint/token的配对JSON，不再自动保存项目data。*.pairing.json忽略；设备页导入只填表，核对保存后检查连接。Token不得进Git/日志/发行包；device发行清单只允许固定脚本和镜像。
-- 最新本地安装包放在项目根目录 `dsh-lease-voice-0.7.2.tgz`，与artifacts副本SHA256一致；根tgz已忽略，发布时作为GitHub Release附件，不加入源码历史。
+- 最新本地安装包放在项目根目录 `dsh-lease-voice-0.7.3.tgz`，与artifacts副本SHA256一致；根tgz已忽略，发布时作为GitHub Release附件，不加入源码历史。
 - 发行方法与限制见docs/DISTRIBUTION.md；0.7.1修复宿主重复设置面板，唯一名称LEASE VOICE；根目录新tgz已审核，修复提交185232f已推送；v0.7.1已发布为历史Release并附对应tgz，公开回下载SHA256一致，保留v0.7.0历史附件；未生产安装、未实际烧录/USB配网。开源许可证仍需用户确认。
 - 验证：52项单测51通过，WRX请求钩子观测断言失败（dsh.test.mjs:124）；未修改外部WRX/宿主规避。新增页面/配对导入/模拟设备连接及提示音浏览器套件通过，48项静态检查通过，两个配网窗Check及固件离线哈希通过。实物端到端和长期联网仍待验收。
 

@@ -1,5 +1,16 @@
 # Codex 修改日志
 
+## 2026-11-07：0.7.3修复配网窗关闭异常并补生命周期回归
+
+- 用户目标：配网工具关闭时弹出System.String不包含Dispose的未处理异常，需要可靠关闭并提交、推送、发布修正附件。
+- 诊断：截图指向原关闭回调对任意非空port调用Dispose；0.7.2仅修正参数命名，未防御异常类型/重复清理，旧Check也未触发实际FormClosing。当前进程只读筛查未识别到可确认的独立配网进程，不强杀任何PowerShell、不声称已关闭用户窗口。
+- 修改：将内部变量统一改独立serialConnection；Release-SerialConnection先断开引用、清空待发敏感数据/缓冲/定时状态，再仅对SerialPort执行带异常保护的Close/Dispose，支持重复调用；重试前、失败、拒绝、超时、USB异常、FormClosing和finally复用。新增取消/释放串口按钮及Esc，取消清空密码和配对可用状态，明确不回滚已发送设备配置。最终释放Timer和Form；标题显示LEASE VOICE与0.7.3。包版本/lock同步0.7.3，两份PS1保持一致。
+- 修改文件：tools/device-setup.ps1、software/dsh-voice/device/device-setup.ps1、package.json、package-lock.json、根两份连续性文档；根忽略安装包dsh-lease-voice-0.7.3.tgz。保留0.7.2画面与单面板功能，不改固件或生产安装。
+- 验证：两份PS1以Windows PowerShell -STA执行-Check -Port COM7通过；覆盖null/空串/COM3字符串/关闭对象/已Dispose对象、重复清理及取消状态，实际隐藏ShowDialog定时触发取消和注入String后的Form.Close，确认FormClosing/FormClosed无异常、引用清空；未打开任何串口或发送wifi-set。npm pack自动build/check通过48项；distribution.browser.mjs回归结果见执行输出。tar检查版本、包内配网脚本与tools逐字节一致，无data/配对文件；包SHA256 2288c0f3a9a534ff42839d3bf46e18076234f5e066f0006a8a0936941671547d，3902081字节。
+- 交付：本轮将提交推送并发布v0.7.3，上传及回下载结果完成后另记；不以本地包代替公开交付。
+- 风险：实际USB驱动异常/联网仍需实物验收；旧已打开的窗体不会热更新。既有WRX集成失败、许可证未确认保留，本轮不重复全量测试。
+
+
 ## 2026-11-07：确认0.7.2已推送并发布附件
 
 - 用户目标：完成修复后的源码和安装包公开交付，不再只提供本地包。

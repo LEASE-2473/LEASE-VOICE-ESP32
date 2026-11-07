@@ -2,7 +2,7 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
-$script:port = $null
+$script:serialConnection = $null
 $script:buffer = ''
 $script:pending = $null
 $script:sendAt = [DateTime]::MaxValue
@@ -17,7 +17,7 @@ $rng.Dispose()
 $script:token = ([BitConverter]::ToString($random)).Replace('-', '').ToLowerInvariant()
 
 $form = New-Object Windows.Forms.Form
-$form.Text = 'LEASE 设备配网'
+$form.Text = 'LEASE VOICE 设备配网 · 0.7.3'
 $form.ClientSize = New-Object Drawing.Size(470, 410)
 $form.StartPosition = 'CenterScreen'
 $form.FormBorderStyle = 'FixedDialog'
@@ -80,6 +80,37 @@ $status.Location = New-Object Drawing.Point(20, 246)
 $status.Size = New-Object Drawing.Size(430, 55)
 $form.Controls.Add($status)
 
+# Idempotent cleanup: a failed/legacy assignment must never prevent window closure.
+function Release-SerialConnection {
+    $connection = $script:serialConnection
+    $script:serialConnection = $null
+    $script:pending = $null
+    $script:buffer = ''
+    $script:sendAt = [DateTime]::MaxValue
+    $script:nextStatus = [DateTime]::MaxValue
+    $script:deadline = [DateTime]::MaxValue
+    if ($connection -is [IO.Ports.SerialPort]) {
+        try { if ($connection.IsOpen) { $connection.Close() } } catch {}
+        finally { try { $connection.Dispose() } catch {} }
+    }
+}
+function Cancel-Provisioning {
+    Release-SerialConnection
+    $script:accepted = $false
+    $script:savedAddress = ''
+    $passwordBox.Clear()
+    $export.Enabled = $false
+    $button.Enabled = $true
+    $status.Text = '已取消并释放串口，可以重试或关闭窗口；已发送到设备的设置不会回滚。'
+}
+$cancel = New-Object Windows.Forms.Button
+$cancel.Text = '取消 / 释放串口'
+$cancel.Location = New-Object Drawing.Point(305, 195)
+$cancel.Size = New-Object Drawing.Size(140, 35)
+$cancel.Add_Click({ Cancel-Provisioning })
+$form.Controls.Add($cancel)
+$form.CancelButton = $cancel
+
 function Save-Device([string]$address) {
     $parsedIp = $null
     if (-not [Net.IPAddress]::TryParse($address, [ref]$parsedIp)) { return }
@@ -96,15 +127,15 @@ $button.Add_Click({
         if ([string]::IsNullOrWhiteSpace($ssidBox.Text)) { $status.Text = '请填写 Wi-Fi 名称。'; return }
         if ([Text.Encoding]::UTF8.GetByteCount($ssidBox.Text) -gt 32) { $status.Text = 'Wi-Fi 名称超过 32 字节。'; return }
         if ([Text.Encoding]::UTF8.GetByteCount($passwordBox.Text) -gt 63) { $status.Text = 'Wi-Fi 密码超过 63 字节。'; return }
-        if ($script:port -and $script:port.IsOpen) { $script:port.Close() }
-        $script:port = New-Object IO.Ports.SerialPort($portBox.Text.Trim(), 115200)
-        $script:port.DtrEnable = $false
-        $script:port.RtsEnable = $false
-        $script:port.Encoding = New-Object Text.UTF8Encoding($false)
-        $script:port.NewLine = "`n"
-        $script:port.ReadTimeout = 100
-        $script:port.WriteTimeout = 1500
-        $script:port.Open()
+        Release-SerialConnection
+        $script:serialConnection = New-Object IO.Ports.SerialPort($portBox.Text.Trim(), 115200)
+        $script:serialConnection.DtrEnable = $false
+        $script:serialConnection.RtsEnable = $false
+        $script:serialConnection.Encoding = New-Object Text.UTF8Encoding($false)
+        $script:serialConnection.NewLine = "`n"
+        $script:serialConnection.ReadTimeout = 100
+        $script:serialConnection.WriteTimeout = 1500
+        $script:serialConnection.Open()
         $script:buffer = ''
         $script:accepted = $false
         $script:savedAddress = ''
@@ -121,7 +152,7 @@ $button.Add_Click({
         $script:pending = $null
         $button.Enabled = $true
         $status.Text = '无法配置：请检查串口，关闭其他串口工具后重试。'
-        if ($script:port -and $script:port.IsOpen) { $script:port.Close() }
+        Release-SerialConnection
     }
 })
 
@@ -151,10 +182,11 @@ $export.Add_Click({
 $timer = New-Object Windows.Forms.Timer
 $timer.Interval = 200
 $timer.Add_Tick({
-    if (-not $script:port -or -not $script:port.IsOpen) { return }
+    if ($script:serialConnection -isnot [IO.Ports.SerialPort]) { return }
     try {
+        if (-not $script:serialConnection.IsOpen) { return }
         if ($script:pending -and [DateTime]::UtcNow -ge $script:sendAt) {
-            $script:port.WriteLine($script:pending)
+            $script:serialConnection.WriteLine($script:pending)
             $script:pending = $null
             $script:nextStatus = [DateTime]::UtcNow.AddSeconds(3)
         }
@@ -163,18 +195,21 @@ $timer.Add_Tick({
             $button.Enabled = $true
             if (-not $script:accepted) {
                 $status.Text = '设备未确认配置，请确认已烧录配套固件 后重试。'
-                $script:port.Close()
+                Release-SerialConnection
                 return
             }
             if (-not $script:savedAddress) {
-                $status.Text = '尚未获取 IP，请检查 Wi-Fi 名称、密码及 2.4GHz 网络。'
+                Release-SerialConnection
+                $export.Enabled = $false
+                $status.Text = '尚未获取 IP，已释放串口；请检查 Wi-Fi 名称、密码及 2.4GHz 网络后重试。'
+                return
             }
         }
         if ([DateTime]::UtcNow -ge $script:nextStatus) {
-            $script:port.WriteLine('{"action":"status"}')
+            $script:serialConnection.WriteLine('{"action":"status"}')
             $script:nextStatus = [DateTime]::UtcNow.AddSeconds(3)
         }
-        $script:buffer += $script:port.ReadExisting()
+        $script:buffer += $script:serialConnection.ReadExisting()
         if ($script:buffer.Length -gt 32768) { $script:buffer = $script:buffer.Substring($script:buffer.Length - 16384) }
         while ($script:buffer.Contains("`n")) {
             $cut = $script:buffer.IndexOf("`n")
@@ -189,6 +224,7 @@ $timer.Add_Tick({
                     $script:deadline = [DateTime]::UtcNow.AddSeconds(40)
                     $status.Text = '配置已保存，正在连接 Wi-Fi…'
                 } else {
+                    Release-SerialConnection
                     $status.Text = '设备拒绝配置，请检查名称和密码后重试。'
                     $button.Enabled = $true
                 }
@@ -206,24 +242,55 @@ $timer.Add_Tick({
         $export.Enabled = $false
         $status.Text = '设备连接中断，请检查 USB 后重试。'
         $button.Enabled = $true
-        if ($script:port -and $script:port.IsOpen) { $script:port.Close() }
+        Release-SerialConnection
     }
 })
-$form.Add_FormClosed({
+$form.Add_FormClosing({
     $timer.Stop()
-    $script:pending = $null
-    if ($script:port) { $script:port.Dispose() }
+    Release-SerialConnection
+    $passwordBox.Clear()
 })
-if ($Check) {
-    if ($InitialPort -and $portBox.Text -ne $InitialPort) { throw 'Port argument was not passed to selector' }
-    $script:port = New-Object IO.Ports.SerialPort('COM3', 115200)
-    if ($script:port -isnot [IO.Ports.SerialPort]) { throw 'Serial port object was coerced by a parameter type' }
-    $script:port.DtrEnable = $false
-    $script:port.RtsEnable = $false
-    $script:port.Dispose()
+$form.Add_FormClosed({ $script:formClosed = $true })
+try {
+    if ($Check) {
+        if ($InitialPort -and $portBox.Text -ne $InitialPort) { throw 'Port argument was not passed to selector' }
+        # No test opens a port, sends wifi-set or reads user credentials.
+        foreach ($invalid in @($null, '', 'COM3')) {
+            $script:serialConnection = $invalid
+            $script:pending = 'fixture-not-a-credential'
+            Release-SerialConnection
+            Release-SerialConnection
+            if ($null -ne $script:serialConnection -or $null -ne $script:pending) { throw 'Cleanup did not clear state' }
+        }
+        $script:serialConnection = New-Object IO.Ports.SerialPort('COM3', 115200)
+        $script:serialConnection.DtrEnable = $false
+        $script:serialConnection.RtsEnable = $false
+        Release-SerialConnection
+        $script:serialConnection = New-Object IO.Ports.SerialPort('COM3', 115200)
+        $script:serialConnection.Dispose()
+        Release-SerialConnection
+        $script:serialConnection = 'COM3'
+        Cancel-Provisioning
+        if (-not $button.Enabled -or $export.Enabled) { throw 'Cancel left invalid control state' }
+        # Exercise actual WinForms events, not just constructing and disposing controls.
+        $form.Opacity = 0
+        $form.ShowInTaskbar = $false
+        $script:formClosed = $false
+        $script:serialConnection = 'COM3'
+        $closeTest = New-Object Windows.Forms.Timer
+        $closeTest.Interval = 100
+        $closeTest.Add_Tick({ $closeTest.Stop(); $cancel.PerformClick(); $script:serialConnection = 'COM3'; $form.Close() })
+        try { $closeTest.Start(); [void]$form.ShowDialog() }
+        finally { $closeTest.Dispose() }
+        if (-not $script:formClosed -or $null -ne $script:serialConnection) { throw 'Form close failed' }
+        Write-Output 'PASS: null/string/closed/disposed serial cleanup, repeated cleanup, cancel and actual FormClosing/FormClosed; no serial port opened.'
+    } else {
+        $timer.Start()
+        [void]$form.ShowDialog()
+    }
+} finally {
+    $timer.Stop()
+    Release-SerialConnection
+    $timer.Dispose()
     $form.Dispose()
-    Write-Output 'PASS: device setup form created without opening any serial port.'
-    exit 0
 }
-$timer.Start()
-[void]$form.ShowDialog()

@@ -1,6 +1,6 @@
 {
   "name": "dsh-lease-voice",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "DSH 语音、完成提示、独立素材播放与 ESP32 扩展",
   "private": true,
   "type": "module",
