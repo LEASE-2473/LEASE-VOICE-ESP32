@@ -1,5 +1,15 @@
 # Codex 修改日志
 
+## 2026-11-07：确认0.7.1修正版源码与Release交付
+
+- 用户目标：修复单一LEASE VOICE面板后完成Git推送和Release附件更新。
+- 结果：修复提交185232f已推送origin/main；GitHub发布v0.7.1并设为latest，附件dsh-lease-voice-0.7.1.tgz为3900520字节，保留v0.7.0历史包，不同版本不混用。
+- 验证：GitHub API确认非draft、资产名称/长度/服务端digest匹配；首次公开回下载短暂404，随后加防缓存参数回下载成功，SHA256为f3dec1c74f2e4fe8d5e1df34084b68948bc497051f0e987b905dd7ba609133d6，与根目录包一致。未输出访问凭据。git diff --check检查文档格式。
+- 发布地址：https://github.com/LEASE-2473/LEASE-VOICE-ESP32/releases/tag/v0.7.1 。
+- 修改文件：PROJECT_CONTEXT.md、CODEX_CHANGELOG.md、根README.md（增加修正版入口）；未改变已发布包内容，不重复打包或业务测试。
+- 未完成与风险：未替用户安装/重载生产DSH，新包安装后需重载及刷新旧客户端；WRX集成失败、许可证和实物配网待验收保留。
+
+
 ## 2026-11-07：0.7.1修复重复设置面板，统一LEASE VOICE名称
 
 - 用户目标：宿主只保留一个名为LEASE VOICE的设置面板，重新打包、Git提交推送并更新Release附件。

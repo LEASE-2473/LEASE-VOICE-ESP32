@@ -23,3 +23,7 @@
 
 ## 0.7.0 公开发行
 浏览器独立使用、可选 ESP32 和本地安装请见 [发行说明](docs/DISTRIBUTION.md)。
+
+## 0.7.1 修正版
+
+设置中仅保留一个 **LEASE VOICE** 面板，内部切换语音、配置、设备；删除重复的「语音扩展」入口。[下载最新修正版安装包](https://github.com/LEASE-2473/LEASE-VOICE-ESP32/releases/tag/v0.7.1)。安装后请重载插件并刷新客户端。
