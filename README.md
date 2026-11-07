@@ -27,3 +27,7 @@
 ## 0.7.1 修正版
 
 设置中仅保留一个 **LEASE VOICE** 面板，内部切换语音、配置、设备；删除重复的「语音扩展」入口。[下载最新修正版安装包](https://github.com/LEASE-2473/LEASE-VOICE-ESP32/releases/tag/v0.7.1)。安装后请重载插件并刷新客户端。
+
+## 0.7.2 配网与画面入口修复
+
+[下载最新安装包](https://github.com/LEASE-2473/LEASE-VOICE-ESP32/releases/tag/v0.7.2)：修复Windows USB配网串口变量重名，恢复设备页展开区内始终可见的画面推送入口及独立屏幕能力说明。安装后重载插件并刷新客户端；已有配套固件不必重新烧录。

@@ -1,5 +1,15 @@
 # Codex 修改日志
 
+## 2026-11-07：确认0.7.2已推送并发布附件
+
+- 用户目标：完成修复后的源码和安装包公开交付，不再只提供本地包。
+- 结果：1ec7f20已非force推送origin/main；v0.7.2正式Release已发布为latest，附件dsh-lease-voice-0.7.2.tgz为3901274字节；保留历史版本附件。
+- 验证：GitHub API确认draft=false、附件名称/大小/digest匹配；发布后首次数次公开下载暂时404，随后防缓存URL公开回下载成功，SHA256为0725ba5a16e8d0648609bfcbb180e655f9daca1f94099c5ff7603fa990c4acf9，与根包一致；未输出访问凭据。本轮仅补状态文档，git diff --check通过，推送后核对远程SHA和工作区。
+- 修改文件：PROJECT_CONTEXT.md、CODEX_CHANGELOG.md、docs/DISTRIBUTION.md、根README.md；未改已发布包内容。
+- 发布地址：https://github.com/LEASE-2473/LEASE-VOICE-ESP32/releases/tag/v0.7.2 。
+- 未完成与风险：未直接升级生产安装或操作设备，安装后须重载并刷新客户端；既有WRX集成失败、许可证和实物配网/画面验收仍待。
+
+
 ## 2026-11-07：补齐0.7.2提交推送及Release发布流程
 
 - 用户目标：立即将已完成的配网及画面入口修复提交、推送并发布安装包，不停留在本地交付。
