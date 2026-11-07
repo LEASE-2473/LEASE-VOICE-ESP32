@@ -23,8 +23,8 @@ window.__ModuleLoader__={load(def){
  const render=id=>rows.find(row=>row.meta.id===id).render({sessionId,messageId:'manual-final'});
  return React.createElement(React.Fragment,null,
   React.createElement('div',{id:'host-controls'},render('lease-voice-controls')),
-  React.createElement('button',{onClick:()=>setPage('voice')},'语音设置入口'),React.createElement('button',{onClick:()=>setPage('extension')},'扩展设置入口'),React.createElement('button',{onClick:()=>setPage('chat')},'聊天入口'),
-  page==='voice'?render('lease-voice'):page==='extension'?render('lease-voice-extensions'):React.createElement('div',{id:'host-action'},render('lease-voice-speak')));
+  React.createElement('button',{onClick:()=>setPage('voice')},'语音设置入口'),React.createElement('button',{onClick:()=>setPage('chat')},'聊天入口'),
+  page==='voice'?render('lease-voice'):React.createElement('div',{id:'host-action'},render('lease-voice-speak')));
  }
  createRoot(document.getElementById('root')).render(React.createElement(App));
 }};
@@ -71,14 +71,15 @@ function publish(id) {
   for (const event of events) replies.consume(target, event);
 }
 try {
-  await page.goto(`${preview.url}/api/lease-voice/ui`); await status('配置已读取');
+  await page.goto(`${preview.url}/api/lease-voice/ui?tab=config`); await status('配置已读取');
   assert.equal(await page.locator('#transport').inputValue(), 'websocket');
   assert.equal(await page.locator('#endpoint').inputValue(), 'wss://openspeech.bytedance.com/api/v3/tts/bidirection');
   await page.locator('#transport').selectOption('sse');
   assert.equal(await page.locator('#endpoint').inputValue(), 'https://openspeech.bytedance.com/api/v3/tts/unidirectional/sse');
   await page.locator('#transport').selectOption('websocket');
   assert.equal(await page.locator('#endpoint').inputValue(), 'wss://openspeech.bytedance.com/api/v3/tts/bidirection');
-  await page.locator('#api-key').fill('fake-key'); await page.locator('input[value=auto]').check();
+  await page.locator('#api-key').fill('fake-key');
+  await page.locator('input[value=auto]').evaluate(el => { el.checked = true; });
   await page.getByRole('button', { name: '保存语音设置' }).click(); await status('语音设置已保存');
   assert.equal(await page.locator('#api-key').inputValue(), ''); assert.match(await page.locator('#key-state').textContent(), /已保存/);
   await page.locator('#provider').selectOption('minimax'); assert.equal(await page.locator('#model-field').isVisible(), true); assert.equal(await page.locator('#resource-field').isVisible(), false);
@@ -92,6 +93,7 @@ try {
   assert.equal(calls, 1);
   await page.screenshot({ path: join(artifacts, 'voice-settings.png'), fullPage: true });
   await page.goto(`${preview.url}/api/lease-voice/extensions`); await status('配置已读取');
+  await page.locator('#esp-details summary').click();
   await page.locator('#device-endpoint').fill(`http://127.0.0.1:${device.address().port}`); await page.locator('#device-token').fill('board-token');
   await page.getByRole('button', { name: '保存设备', exact: true }).click(); await status('设备配置已保存');
   await page.getByRole('button', { name: '连接检查' }).click(); await status('调试操作完成');
@@ -104,11 +106,16 @@ try {
   await page.goto(`${preview.url}/harness`);
   await page.waitForSelector('#host-controls button');
   const slots = await page.evaluate(() => window.voiceSlots);
-  assert.equal(slots.filter(s => s.name === 'settings.section').length, 2);
+  assert.equal(slots.filter(s => s.name === 'settings.section').length, 1);
   await page.getByRole('button', { name: '语音设置入口', exact: true }).click();
-  await page.frameLocator('iframe').locator('#provider').waitFor();
-  await page.getByRole('button', { name: '扩展设置入口', exact: true }).click();
-  await page.frameLocator('iframe').locator('#device-endpoint').waitFor();
+  assert.equal(slots.find(s => s.name === 'settings.section').label, 'LEASE VOICE');
+  const settings = page.frameLocator('iframe');
+  await settings.locator('#mode-card').waitFor();
+  await settings.locator('#config-nav').click();
+  await settings.locator('#provider').waitFor();
+  await settings.locator('#extension-nav').click();
+  await settings.locator('#esp-details summary').click();
+  await settings.locator('#device-endpoint').waitFor();
   await page.getByRole('button', { name: '聊天入口', exact: true }).click();
   await page.getByRole('button', { name: '启用声音', exact: true }).click();
   const beforeManual = calls;
@@ -164,16 +171,17 @@ try {
   await mobile.screenshot({ path: join(artifacts, 'voice-mobile-light.png'), fullPage: true });
   await insecure.close();
   assert.deepEqual(errors, []);
-  await page.goto(`${preview.url}/api/lease-voice/ui`); await status('配置已读取');
+  await page.goto(`${preview.url}/api/lease-voice/extensions`); await status('配置已读取');
   await page.locator('#output-target').selectOption('esp32');
-  await page.getByRole('button', { name: '保存语音设置' }).click(); await status('语音设置已保存');
+  await page.locator('#save-output').click(); await status('播放设备已保存');
   await page.reload(); await status('配置已读取');
   assert.equal(await page.locator('#output-target').inputValue(), 'esp32');
+  await page.locator('#config-nav').click(); await status('配置已读取');
   await page.getByRole('button', { name: '合成并试听' }).click();
   await page.waitForFunction(() => document.getElementById('play-status').textContent === '设备播放完成');
   assert.equal(uploads.length, 1); assert.ok(uploads[0].length > 0);
   assert.deepEqual(errors, []);
-  console.log('浏览器通过：两设置页注册/iframe、provider 切换与保存、密钥脱敏、试听播放、设备协议调试、真实 React 消息按钮、自动朗读双窗口去重、刷新与切换会话；无页面 JS 错误。');
+  console.log('浏览器通过：单一LEASE VOICE设置注册/iframe及内部导航、provider 切换与保存、密钥脱敏、试听播放、设备协议调试、真实 React 消息按钮、自动朗读双窗口去重、刷新与切换会话；无页面 JS 错误。');
   console.log(`截图：${artifacts}`);
 } finally {
   await browser.close(); await preview.close(); device.closeAllConnections(); await new Promise(resolve => device.close(resolve));

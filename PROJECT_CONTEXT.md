@@ -4,12 +4,12 @@
 
 - 当前目录沿用原Git历史，origin为LEASE-2473/LEASE-VOICE-ESP32；fetch核对main基线同为dfdfb90，没有迁移造成的新仓库或远程分叉。公开范围为原126文件加18项发行说明、测试、USB工具和固定固件（共144文件），无删除。源码已通过3e6fe7f提交并推送origin/main；根tgz计划作为单独Release附件交付，不提交包历史。
 
-- 仓库软件已开发至0.7.0，日常DSH磁盘安装及运行态未在本轮更新。设置分为语音、配置、设备；提示音管理可直接在语音页完成，同供应商支持多份命名配置，凭据仍只在宿主保存、公开API脱敏。
+- 仓库软件已开发至0.7.1，日常DSH磁盘安装及运行态未在本轮更新。设置分为语音、配置、设备；提示音管理可直接在语音页完成，同供应商支持多份命名配置，凭据仍只在宿主保存、公开API脱敏。
 - 无设备时设备选择仅浏览器，认证检查发现audio-pcm16能力后显示ESP32；扩展details默认折叠，连接后出现画面管理入口。浏览器用户无需USB工具或硬件。
 - 固件源码未改；firmware/esp32-s3/release保留既有M3.1三BIN及原manifest。插件device目录分发Windows配网/烧录脚本和镜像，不将WinForms编入固件。烧录依赖Python/esptool4.8.1、驱动，串口传给配网窗；沿用wifi-set/status协议。
 - 配网工具枚举/刷新串口、联网状态反馈，显式导出仅name/endpoint/token的配对JSON，不再自动保存项目data。*.pairing.json忽略；设备页导入只填表，核对保存后检查连接。Token不得进Git/日志/发行包；device发行清单只允许固定脚本和镜像。
-- 最新本地安装包放在项目根目录 `dsh-lease-voice-0.7.0.tgz`，与artifacts副本SHA256一致；根tgz已忽略，发布时作为GitHub Release附件，不加入源码历史。
-- 发行方法与限制见docs/DISTRIBUTION.md；0.7.0 tgz已本地生成并审核，尚未作为GitHub Release附件发布；未生产安装、未实际烧录/USB配网。开源许可证仍需用户确认。
+- 最新本地安装包放在项目根目录 `dsh-lease-voice-0.7.1.tgz`，与artifacts副本SHA256一致；根tgz已忽略，发布时作为GitHub Release附件，不加入源码历史。
+- 发行方法与限制见docs/DISTRIBUTION.md；0.7.1修复宿主重复设置面板，唯一名称LEASE VOICE；根目录新tgz已审核，准备发布v0.7.1并保留v0.7.0历史附件；未生产安装、未实际烧录/USB配网。开源许可证仍需用户确认。
 - 验证：52项单测51通过，WRX请求钩子观测断言失败（dsh.test.mjs:124）；未修改外部WRX/宿主规避。新增页面/配对导入/模拟设备连接及提示音浏览器套件通过，48项静态检查通过，两个配网窗Check及固件离线哈希通过。实物端到端和长期联网仍待验收。
 
 
@@ -54,7 +54,7 @@
 
 | 目录 | 职责与当前状态 |
 | --- | --- |
-| `software/dsh-voice/` | DSH 插件包：host 为认证 API/配置/生命周期，client 为两个设置入口/屏幕管理/播放器，core 为正文/事件/任务/叮声/素材库，providers 为三种 TTS 格式，extensions 为设备调试；scripts/tests 为开发工具 |
+| `software/dsh-voice/` | DSH 插件包：host 为认证 API/配置/生命周期，client 为单一LEASE VOICE设置入口/屏幕管理/播放器，core 为正文/事件/任务/叮声/素材库，providers 为三种 TTS 格式，extensions 为设备调试；scripts/tests 为开发工具 |
 | `firmware/esp32-s3/` | 冻结交付保留；设备已M3.1，当前1.8寸屏现场色块/边框/人物方向和pet动画通过。启动off，须电脑明确启用；构建manifest保留当时hardware_tested:false，实物证据另存acceptance。next不参与构建 |
 | `tools/` | 本机Windows配网窗device-setup.cmd/ps1，USB输入Wi-Fi并设置随机设备Token；仅在本机tools/data/device.json保存设备地址/Token，不保存Wi-Fi密码 |
 | `shared/protocol/` | 调试schema、device-audio-v1.md及device-display-v1.md；画面为独立流ID/序号的RGB565BE全帧协议，不复用音频stop |
@@ -73,7 +73,7 @@
 - 默认手动模式。自动模式仅针对当前客户端选中的主会话新完成回复；不扫描历史自动朗读，不播报子代理、思考、工具或中断片段。
 - 第一阶段先做整条回复完成后合成，必要时按 provider 限制分段并顺序播放；不做 token 级实时朗读。
 - provider 凭据由宿主保存，客户端只读脱敏配置；提供商协议不能仅凭“OpenAI 兼容”宣传推定支持，实际适配需单独验证。
-- 设置注册为「语音」「语音扩展」两个独立入口，内部也能切换页面。消息旁手动按钮和会话顶部声音授权/停止控件通过原生 slots 注册，不扫描网页文字。
+- 设置仅注册「LEASE VOICE」一个入口（lease-voice），删除lease-voice-extensions注册；面板内切换语音、配置、设备，旧extensions路由仅保留为内部设备页。消息旁手动按钮和会话顶部声音授权/停止控件通过原生 slots 注册，不扫描网页文字。
 - 当前提供火山豆包 V3（默认双向 WebSocket，可选 SSE；新版 API Key、旧版 App ID/Access Token）、OpenAI 兼容 Speech、MiniMax HTTP 三种格式，每个 provider 一个独立配置档；浏览器输出 MP3；ESP32 输出 PCM16LE、24kHz、单声道。用户首选火山，已用保存的凭据真实验证一次双向短句合成。详见 docs/PROVIDERS.md。
 - 页面及 API 统一注册到 DSH `connection.fetch` 的 `/api/lease-voice/*`，宿主验证 owner 身份与 Host/Origin；不另开生产端口。正文通过 `sessionQuery.readSession()` 读取，不直接依赖旧插件的 `.log` 用法。
 - 默认配置在插件 `data/config.json`，可用 LEASE_VOICE_DATA_DIR 外置。凭据本机明文存储、UI 不回显；音频仅内存缓存，15 分钟/64 MiB 上限；重播同正文同配置可复用本窗口缓存。

@@ -1,5 +1,16 @@
 # Codex 修改日志
 
+## 2026-11-07：0.7.1修复重复设置面板，统一LEASE VOICE名称
+
+- 用户目标：宿主只保留一个名为LEASE VOICE的设置面板，重新打包、Git提交推送并更新Release附件。
+- 根因：0.7.0仅拆分内部页面，却遗漏client/entry.js的第二条settings.section注册，旧测试甚至断言注册两个入口；本次修正实现与测试，不能靠改包清单隐藏问题。
+- 修改：仅保留lease-voice设置slot，标签/iframe标题为LEASE VOICE；删除lease-voice-extensions slot及分支，内部语音/配置/设备导航和旧设备路由保留。版本及lock升级0.7.1，重建client/index.js；真实React测试改为断言只有一个设置slot、标签正确且内导航可用，保留语音、提示和设备回归；core单测检查唯一注册及旧ID不存在。更新插件README、docs/ARCHITECTURE.md及中文连续性文档。
+- 修改文件：software/dsh-voice/client/{entry.js,index.js}、package.json、package-lock.json、tests/{core.test.mjs,ui.browser.mjs}、README.md；docs/ARCHITECTURE.md；根PROJECT_CONTEXT.md、CODEX_CHANGELOG.md；根新增忽略的dsh-lease-voice-0.7.1.tgz。
+- 验证：npm run build/check通过48项；test:browser真实React单入口/标签/内部导航、provider保存、试听、设备调试/真实PCM发送、自动去重及提示先后顺序均通过，无页面异常；distribution.browser.mjs通过。npm test为52项51通过/1失败，仍为dsh.test.mjs:124既有WRX hookObserved断言，未扩大修复外部项目。npm pack成功，tar确认版本0.7.1、仅一个settings.section注册、无旧入口ID，保留device脚本/固件且无data/配对文件/测试日志。
+- 产物：根目录dsh-lease-voice-0.7.1.tgz，3900520字节；SHA256 f3dec1c74f2e4fe8d5e1df34084b68948bc497051f0e987b905dd7ba609133d6。不覆盖0.7.0附件，发布v0.7.1修正版，避免同版本缓存混淆。Git推送及Release上传结果另行核对。
+- 未完成与风险：本轮不直接覆盖日常DSH；安装新包后需重载插件/刷新客户端，已加载旧JS的窗口可能仍见旧入口。既有WRX集成失败、许可证与实物配网未验收不变。
+
+
 ## 2026-11-07：确认GitHub同步结果与脚本格式整理
 
 - 用户目标：完成当前目录本地提交后同步原GitHub仓库。

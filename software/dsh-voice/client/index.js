@@ -196,8 +196,8 @@
         player = new VoicePlayer();
         return { player, api };
       });
-      function Settings({ extension = false }) {
-        return h("iframe", { title: extension ? "\u8BED\u97F3\u6269\u5C55 \xB7 ESP32" : "\u8BED\u97F3\u8BBE\u7F6E", src: `/api/lease-voice/${extension ? "extensions" : "ui"}`, style: { width: "100%", height: "min(860px, 80vh)", minHeight: 580, border: 0, borderRadius: 12 }, allow: "autoplay" });
+      function Settings() {
+        return h("iframe", { title: "LEASE VOICE", src: "/api/lease-voice/ui", style: { width: "100%", height: "min(860px, 80vh)", minHeight: 580, border: 0, borderRadius: 12 }, allow: "autoplay" });
       }
       function Action({ messageId, sessionId }) {
         const [error, setError] = React.useState("");
@@ -280,8 +280,7 @@
         apply(ctx) {
           const slots = ctx.get("slots");
           const register = (name, id, label, component, order) => slots.inject(name, () => slots.register({ name, id, label, order }, component));
-          register("settings.section", "lease-voice", "\u8BED\u97F3", () => h(Settings), 35);
-          register("settings.section", "lease-voice-extensions", "\u8BED\u97F3\u6269\u5C55", () => h(Settings, { extension: true }), 36);
+          register("settings.section", "lease-voice", "LEASE VOICE", () => h(Settings), 35);
           register("conversation.chat.assistant-actions", "lease-voice-speak", "\u8F6C\u8BED\u97F3", (props) => h(Action, props), 60);
           register("conversation.session.header.utilities", "lease-voice-controls", "\u8BED\u97F3\u64AD\u653E", (props) => h(Controls, props), 60);
           ctx.effect(() => () => {

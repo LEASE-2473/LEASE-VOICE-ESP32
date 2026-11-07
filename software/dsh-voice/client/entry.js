@@ -11,8 +11,8 @@ window.__ModuleLoader__.load({
       return { player, api };
     });
 
-    function Settings({ extension = false }) {
-      return h('iframe', { title: extension ? '语音扩展 · ESP32' : '语音设置', src: `/api/lease-voice/${extension ? 'extensions' : 'ui'}`, style: { width: '100%', height: 'min(860px, 80vh)', minHeight: 580, border: 0, borderRadius: 12 }, allow: 'autoplay' });
+    function Settings() {
+      return h('iframe', { title: 'LEASE VOICE', src: '/api/lease-voice/ui', style: { width: '100%', height: 'min(860px, 80vh)', minHeight: 580, border: 0, borderRadius: 12 }, allow: 'autoplay' });
     }
     function Action({ messageId, sessionId }) {
       const [error, setError] = React.useState('');
@@ -82,8 +82,7 @@ window.__ModuleLoader__.load({
       apply(ctx) {
         const slots = ctx.get('slots');
         const register = (name, id, label, component, order) => slots.inject(name, () => slots.register({ name, id, label, order }, component));
-        register('settings.section', 'lease-voice', '语音', () => h(Settings), 35);
-        register('settings.section', 'lease-voice-extensions', '语音扩展', () => h(Settings, { extension: true }), 36);
+        register('settings.section', 'lease-voice', 'LEASE VOICE', () => h(Settings), 35);
         register('conversation.chat.assistant-actions', 'lease-voice-speak', '转语音', props => h(Action, props), 60);
         register('conversation.session.header.utilities', 'lease-voice-controls', '语音播放', props => h(Controls, props), 60);
         ctx.effect(() => () => { ready.then(({ player }) => player.dispose()).catch(() => {}); }, 'lease-voice:client-lifetime');

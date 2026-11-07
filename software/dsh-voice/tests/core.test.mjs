@@ -195,13 +195,15 @@ test('ESP32 调试鉴权、能力校验、音量与协议错误', async () => {
   await assert.rejects(debugDevice(device, 'volume', 101));
   await assert.rejects(debugDevice(device, 'info', undefined, async () => Response.json({ protocol: 0 })), /协议不匹配/);
 });
-test('客户端注册两个设置页、回复按钮和会话播放控制，不扫描 DOM', () => {
+test('客户端只注册LEASE VOICE一个设置页、回复按钮和会话播放控制，不扫描 DOM', () => {
   const source = readFileSync(new URL('../client/index.js', import.meta.url), 'utf8');
   let definition;
   vm.runInNewContext(source, { window: { __ModuleLoader__: { load: value => { definition = value; } } } });
   assert.equal(definition.id, 'dsh-lease-voice');
-  // 浏览器测试另外使用真实 React 执行注册、挂载按钮和两个设置页。
-  for (const name of ['settings.section', 'lease-voice-extensions', 'conversation.chat.assistant-actions', 'conversation.session.header.utilities']) assert.ok(source.includes(name));
+  // 浏览器测试另外使用真实 React 执行注册、挂载按钮和单一设置面板内导航。
+  for (const name of ['settings.section', 'LEASE VOICE', 'conversation.chat.assistant-actions', 'conversation.session.header.utilities']) assert.ok(source.includes(name));
+  assert.equal((source.match(/register\("settings.section"/g) || []).length, 1);
+  assert.ok(!source.includes('lease-voice-extensions'));
   assert.ok(!source.includes('MutationObserver'));
   assert.ok(!/import\s*\(/.test(source), 'DSH 客户端不得依赖额外 HTTP 动态模块加载');
   assert.ok(/(?:class VoicePlayer|VoicePlayer\s*=\s*class)/.test(source), '播放器必须包含在客户端包内');

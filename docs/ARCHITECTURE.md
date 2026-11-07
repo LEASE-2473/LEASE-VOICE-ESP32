@@ -5,7 +5,7 @@
 ## 当前落地与目标设计的区别
 
 - 已落地 `software/dsh-voice/{host,client,core,providers,extensions,scripts,tests}`。浏览器输出目前在 client/player.js，不另造空 outputs 目录。
-- UI 在设置中注册「语音」「语音扩展」两个独立入口；后端使用 owner 认证的 connection.fetch，地址 `/api/lease-voice/*`。无未认证的生产 Web 路由。
+- UI 在设置中仅注册「LEASE VOICE」一个入口，内部导航为语音、配置、设备；后端使用 owner 认证的 connection.fetch，地址 `/api/lease-voice/*`。无未认证的生产 Web 路由。
 - 三种固定协议档：火山 V3 双向 WebSocket（可选 SSE）、OpenAI 兼容 Speech、MiniMax HTTP；浏览器MP3/800字分段，设备PCM24k单声道/200字分段，15分钟/64MiB缓存。
 - 屏幕使用可选pet/meme/本地来源与独立播放列表，不移植原插件、不订阅桌宠动作。浏览器解码、canvas合成、RGB565BE量化，owner宿主桥接注入Token，以最多约5fps逐帧确认；M3独立异步接收、PSRAM最新帧、同步DMA输出、5秒断流清黑。0.6.0由宿主隐藏Edge常驻解码和串行推送，关闭控制页不停止，详见BACKGROUND_SCREEN.md。
 - 0.5.0自动测试46项通过；真实浏览器验证音频导入/保存/下载、提示先于正文与屏幕回归。此前实物完成两段120秒pet推送和显示期间音频取消，本轮不以模拟测试替代扬声器听音或固件验收。工作/空闲/完成动画自动切换与后台语音事件调度尚未实现；日常宿主未升级，长期稳定仍待验证。
