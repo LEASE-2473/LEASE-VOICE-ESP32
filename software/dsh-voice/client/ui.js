@@ -56,16 +56,18 @@ $('provider-card').hidden = !configuration;
 $('sample-card').hidden = !configuration;
 $('mode-card').hidden = configuration;
 $('completion-form').closest('section').hidden = extension || configuration;
-let connected = false;
-function deviceOptions(ok) {
-  connected = ok;
+function deviceOptions(ok, capabilities = []) {
   for (const id of ['output-target', 'completion-target']) {
     const select = $(id), option = select.querySelector('option[value=esp32]');
     option.hidden = !ok; option.disabled = !ok;
     if (!ok) select.value = 'browser';
   }
   if (ok) { $('output-target').value = config.outputTarget || 'browser'; $('completion-target').value = config.completion?.target || 'browser'; }
-  $('display-link').hidden = !ok;
+  const displayReady = capabilities.includes('display-rgb565') && capabilities.includes('display-config');
+  $('display-availability').textContent = displayReady
+    ? '已连接支持屏幕接收的设备。打开画面页，检查屏幕能力后可推送测试色块、素材和后台动画。'
+    : ok ? '设备音频已连接，但未声明完整屏幕接收能力；可管理素材和预览，实体推送需要配套 M3 固件。'
+    : '尚未连接或检查未通过：可先打开画面管理、导入素材和预览；实体推送前请在下方保存设备并连接检查。';
 }
 async function load() {
   config = await api('config');
@@ -81,7 +83,7 @@ async function load() {
   await soundPanel.load(config);
   deviceOptions(false);
   if (config.device.endpoint && config.device.tokenSet) {
-    try { const info = await api('device-debug', { action: 'info' }); deviceOptions(info.capabilities.includes('audio-pcm16')); } catch {}
+    try { const info = await api('device-debug', { action: 'info' }); deviceOptions(info.capabilities.includes('audio-pcm16'), info.capabilities); } catch {}
   }
   $('device-name').value = config.device.name;
   $('device-endpoint').value = config.device.endpoint;
@@ -130,7 +132,7 @@ $('save-audio').addEventListener('click', () => void operate(async () => {
 $('download-audio').addEventListener('click', () => void operate(async () => {
   downloadWav(await taskWav(player), $('audio-save-name').value); notice('已生成WAV下载，不会重新调用TTS。');
 }));
-$('device-form').addEventListener('input', () => { deviceDirty = true; $('connection-state').textContent = '设备配置已修改，保存后重新检查连接'; $('device-info').replaceChildren(); });
+$('device-form').addEventListener('input', () => { deviceDirty = true; deviceOptions(false); $('connection-state').textContent = '设备配置已修改，保存后重新检查连接'; $('device-info').replaceChildren(); });
 $('device-form').addEventListener('submit', event => {
   event.preventDefault();
   void operate(async () => {
@@ -147,7 +149,7 @@ async function debug(action, value) {
     $('connection-state').textContent = action === 'info' ? '已连接 · 协议 v1' : '设备已接受命令；请观察实物';
     $('debug-log').textContent = `[${at}] ${action}\n${JSON.stringify(result, null, 2)}`;
     if (action === 'info') {
-      deviceOptions(result.capabilities.includes('audio-pcm16'));
+      deviceOptions(result.capabilities.includes('audio-pcm16'), result.capabilities);
       $('device-info').replaceChildren();
       for (const [label, value] of [['名称', result.name], ['固件版本', result.firmware], ['能力', result.capabilities.join('、') || '未声明']]) {
         const dt = document.createElement('dt'); dt.textContent = label;

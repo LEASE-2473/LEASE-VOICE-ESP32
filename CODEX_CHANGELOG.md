@@ -1,5 +1,34 @@
 # Codex 修改日志
 
+## 2026-11-07：补齐0.7.2提交推送及Release发布流程
+
+- 用户目标：立即将已完成的配网及画面入口修复提交、推送并发布安装包，不停留在本地交付。
+- 提交范围：两轮已审阅的0.7.2改动（client/index.html、screen.html、ui.js，包内及tools配网PS1，package/lock，distribution浏览器测试、发行文档及两份连续性文档）；不包含data/配对Token/安装包二进制历史或无关目录。
+- 验证：本轮重跑distribution.browser.mjs通过，包内device-setup.ps1 -Check -Port COM7通过（不打开串口），npm run check通过48项；tar逐字节核对根tgz内4项改动运行文件与源码一致、版本0.7.2、无data/配对文件；根包SHA256为0725ba5a16e8d0648609bfcbb180e655f9daca1f94099c5ff7603fa990c4acf9。git diff --check通过。
+- 操作：将先本地提交后非force推送main，再发布v0.7.2并上传根目录tgz；结果及公开回下载校验另行记录。
+- 未完成与风险：不修改生产DSH或实物设备；既有WRX集成失败、许可证、实物配网验收仍保留。
+
+
+## 2026-11-07：恢复可发现的画面推送入口及独立能力状态
+
+- 用户目标：设备页找不到画面推送功能，恢复可见入口，不删减现有屏幕功能。
+- 根因：原display-link整卡以音频连接结果切换hidden，未连接/配对未完成时直接消失，用户无法发现仍存在的screen路由；能力条件也混淆音频和屏幕。
+- 修改：ESP32 details继续默认折叠，但展开后顶部始终显示「画面推送 · ESP32 屏幕」与「打开画面推送与测试」；明确列出素材/动画/播放列表/测试色块/后台推送，未连接可先管理与预览。分别显示未连接、仅音频、具备display-rgb565+display-config状态；设备配置改动会使旧能力状态失效。screen页标题/导航统一为画面推送、设备、配置；实体发送仍由已有宿主能力检查保护，打开页面不自动推送。仍仅一个LEASE VOICE宿主设置面板。
+- 修改文件：software/dsh-voice/client/{index.html,ui.js,screen.html}、tests/distribution.browser.mjs；docs/DISTRIBUTION.md及根两份连续性文档。保留上一轮未提交的0.7.2配网修复；重打根dsh-lease-voice-0.7.2.tgz（0.7.2尚未发布）。
+- 验证：distribution.browser.mjs通过折叠默认、展开可见/未连接说明、入口可打开screen测试控件和媒体导入、模拟有屏能力与仅音频状态。新增仅音频断言首次因等待到旧notice文本而抢跑，改等待实际能力状态后通过。npm run test:screen通过素材导入/持久化/播放/移动布局及模拟帧推送回归，无JS/CSP异常；本机pet实物素材验收因未找到素材目录未执行，不能算通过。npm pack自动build/check通过48项，tar核对可见入口、程序字节一致及无data/配对文件。SHA256 0725ba5a16e8d0648609bfcbb180e655f9daca1f94099c5ff7603fa990c4acf9。
+- 未完成与风险：未直接更新生产DSH/操作实物或发送画面；根0.7.2包需重新安装并刷新客户端，现有0.7.1不会自动变。未提交/推送或更新GitHub Release；原WRX集成失败及实物配网仍待。
+
+
+## 2026-11-07：0.7.2修复USB配网串口参数重名
+
+- 用户目标：已接USB且有固件的设备如何配网，截图COM3报无法配置；不应要求重新烧录。
+- 诊断：只读枚举确认USB-SERIAL CH340 COM3状态OK；未打开串口、未发送命令、未接触用户Wi-Fi密码。源码发现param([string]$Port)与$script:port共享脚本变量（PowerShell大小写不敏感），赋SerialPort时强转String，DtrEnable赋值失败后被笼统catch隐藏。离线旧参数复现GetType为String，确认代码缺陷，不把它误称驱动/固件问题。
+- 修改：tools/device-setup.ps1及包内副本将参数改为[Alias('Port')][string]$InitialPort，保留烧录脚本-Port传递兼容；Check增加串口选择值与SerialPort对象类型验证及DTR/RTS属性赋值，不打开串口。package与lock升0.7.2，根目录生成新tgz。
+- 修改文件：tools/device-setup.ps1、software/dsh-voice/device/device-setup.ps1、software/dsh-voice/package.json、package-lock.json、根PROJECT_CONTEXT.md及本日志；根忽略产物dsh-lease-voice-0.7.2.tgz。
+- 验证：两份脚本均执行-Check -Port COM7通过，故意选择非实物串口验证参数不会被覆盖；npm pack自动build/check成功，48项静态检查通过；tar核对包内脚本与tools副本一致、含修正参数、无data/配对文件；SHA256 58d6644c70cafb7f6cf169f5c116deaf472e383252ccff0166670931b68d5f98。
+- 未完成与风险：未实物打开COM3或执行wifi-set/status，未重烧录或更改设备配置；需用户关闭旧窗体后用修正工具重试，再导出配对文件。0.7.2本轮尚未Git提交/推送或发布Release；原WRX集成失败不变，本轮未改语音不重复浏览器套件。
+
+
 ## 2026-11-07：确认0.7.1修正版源码与Release交付
 
 - 用户目标：修复单一LEASE VOICE面板后完成Git推送和Release附件更新。

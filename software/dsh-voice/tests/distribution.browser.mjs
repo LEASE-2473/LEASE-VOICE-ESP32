@@ -23,6 +23,14 @@ try {
  assert.equal(await page.locator('#output-target option[value=esp32]').evaluate(el => el.disabled),true);
  assert.equal(await page.locator('#display-link').isVisible(),false);
  await page.locator('#esp-details summary').click();
+ assert.equal(await page.locator('#display-link').isVisible(),true);
+ assert.match(await page.locator('#display-availability').textContent(), /尚未连接/);
+ await page.locator('#open-screen').click();
+ await page.locator('#screen-push-pattern').waitFor();
+ assert.equal(await page.locator('#media-upload').isVisible(),true);
+ await page.goto(preview.url + '/api/lease-voice/extensions');
+ await page.locator('#notice').filter({hasText:'配置已读取'}).waitFor();
+ await page.locator('#esp-details summary').click();
  const record = {name:'测试设备',endpoint:'http://192.0.2.1',token:'fixture-token-not-real'};
  await page.locator('#pairing-import').setInputFiles({name:'test.pairing.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(record))});
  await page.locator('#notice').filter({hasText:'请核对设备地址'}).waitFor();
@@ -32,13 +40,19 @@ try {
  assert.equal(preview.store.get().device.endpoint,'', '导入不自动保存或连接');
  await page.locator('#pairing-import').setInputFiles({name:'bad.json',mimeType:'application/json',buffer:Buffer.from('{"token":"bad"}')});
  await page.locator('#notice').filter({hasText:'配对文件无效'}).waitFor();
- await page.route('**/api/lease-voice/device-debug', route => route.fulfill({json:{online:true,protocol:1,name:'测试设备',firmware:'fixture',capabilities:['audio-pcm16','playback-status','display-rgb565']}}));
+ await page.route('**/api/lease-voice/device-debug', route => route.fulfill({json:{online:true,protocol:1,name:'测试设备',firmware:'fixture',capabilities:['audio-pcm16','playback-status','display-rgb565','display-config']}}));
  await page.locator('#device-form button[type=submit]').click();
  await page.locator('#notice').filter({hasText:'设备配置已保存'}).waitFor();
  await page.locator('#connect').click();
  await page.locator('#connection-state').filter({hasText:'已连接'}).waitFor();
  assert.equal(await page.locator('#output-target option[value=esp32]').evaluate(el => el.hidden),false);
  assert.equal(await page.locator('#display-link').isVisible(),true);
+ assert.match(await page.locator('#display-availability').textContent(), /已连接支持屏幕/);
+ await page.route('**/api/lease-voice/device-debug', route => route.fulfill({json:{online:true,protocol:1,name:'音频设备',capabilities:['audio-pcm16','playback-status']}}));
+ await page.locator('#connect').click();
+ await page.waitForFunction(() => document.getElementById('display-availability').textContent.includes('未声明完整屏幕接收能力'));
+ assert.match(await page.locator('#display-availability').textContent(), /未声明完整屏幕接收能力/);
+ assert.equal(await page.locator('#open-screen').isVisible(),true);
  assert.deepEqual(errors,[]);
- console.log('PASS: 页面拆分、命名配置、浏览器独立使用、默认折叠、无设备隐藏推送、无页面异常');
+ console.log('PASS: 页面拆分、命名配置、浏览器独立使用、默认折叠、无设备仍可见画面入口及原因、连接后屏幕能力状态、无页面异常');
 } finally { await browser.close(); await preview.close(); }

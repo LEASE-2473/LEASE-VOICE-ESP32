@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LEASE VOICE · 屏幕播放</title><link rel="stylesheet" href="/api/lease-voice/ui.css"><script type="module" src="/api/lease-voice/screen.js"></script></head>
 <body><main>
-  <header><div class="mark">LV</div><div><p class="eyebrow">LEASE VOICE</p><h1>桌面小屏幕</h1></div><span class="badge" id="environment">电脑预览</span></header>
-  <nav aria-label="语音功能"><a href="/api/lease-voice/ui">语音</a><a href="/api/lease-voice/extensions">扩展 · ESP32</a><a class="active" href="/api/lease-voice/screen">屏幕播放</a></nav>
+  <header><div class="mark">LV</div><div><p class="eyebrow">LEASE VOICE</p><h1>画面推送</h1></div><span class="badge" id="environment">电脑预览</span></header>
+  <nav aria-label="语音功能"><a href="/api/lease-voice/ui">语音</a><a href="/api/lease-voice/extensions">设备</a><a href="/api/lease-voice/ui?tab=config">配置</a><a class="active" href="/api/lease-voice/screen">画面推送</a></nav>
   <div id="notice" role="status" aria-live="polite">正在读取素材库…</div>
   <section class="card intro"><span class="badge">电脑控制 · 独立播放</span><h2>让桌宠和表情，住进小屏幕。</h2><p>从桌宠、表情图库或本地文件挑选画面，组成自己的播放列表。这里独立播放，不同步电脑桌宠动作。可预览并通过 M3 固件推送画面，实际效果以现场屏幕为准。普通预览随页面关闭；后台播放由电脑持续运行，离开本页不会停止。</p></section>
   <div class="screen-layout">
@@ -15,7 +15,7 @@
       <button class="primary" type="submit">保存播放方案</button><p class="hint screen-footnote">保存素材选择和设置，刷新后仍保留；开始播放前请点击「开始循环」。</p>
     </form></section>
   </div>
-  <section class="card"><div class="section-head"><span class="step">Wi-Fi</span><div><h2>实体屏幕推送</h2><p>先在「扩展 · ESP32」保存设备地址。1.8 寸 8 针屏首选 ST7735S；只在明确点击推送时启用屏幕。</p></div></div>
+  <section class="card"><div class="section-head"><span class="step">Wi-Fi</span><div><h2>实体屏幕推送</h2><p>先在 LEASE VOICE →「设备」保存地址与 Token 并连接检查。1.8 寸 8 针屏首选 ST7735S；只在明确点击推送时启用屏幕。</p></div></div>
     <form id="display-form"><label class="field">屏幕配置<select id="display-profile"><option value="st7735-128x160">1.8 寸 · 8 针 · ST7735S 128×160（首选）</option><option value="st7789-240x240">ST7789 240×240 · 8 针</option><option value="st7789-240x320">ST7789 240×320 · 8 针</option></select></label><div class="grid"><label class="field">水平偏移<input id="display-x-gap" type="number" min="0" max="80" value="0" required></label><label class="field">垂直偏移<input id="display-y-gap" type="number" min="0" max="80" value="0" required></label></div>
     <div class="display-flags"><label><input id="display-swap" type="checkbox"> 横竖交换</label><label><input id="display-mirror-x" type="checkbox"> 水平镜像</label><label><input id="display-mirror-y" type="checkbox"> 垂直镜像</label><label><input id="display-bgr" type="checkbox"> BGR 颜色顺序</label><label><input id="display-invert" type="checkbox"> 反色</label></div><div class="actions"><button type="submit">保存屏幕配置</button><button id="screen-device-check" type="button">检查屏幕接收能力</button></div></form>
     <div class="actions"><button id="screen-push-start" class="primary" type="button">开始后台播放</button><button id="background-pause" type="button">暂停后台</button><button id="background-resume" type="button">继续后台</button><button id="background-next" type="button">后台下一个</button><button id="screen-push-pattern" type="button">推送测试色块</button><button id="screen-push-stop" type="button">停止设备画面</button></div><p id="screen-push-status" class="player-status" role="status">未推送 · 需要 M3 固件，首次连接请检查现场画面</p><pre id="screen-device-info" hidden></pre><p class="hint screen-footnote">后台使用下方播放列表和当前播放设置，开始时保存并应用；电脑本地服务运行期间，关闭设置页仍继续。最多约 5 帧/秒，逐帧等待接收确认；不把动画写入 Flash。测试色块仍随本页关闭而停止。接收成功不代表屏幕已经显示。改变画面尺寸或屏幕配置前请先停止推送。</p>

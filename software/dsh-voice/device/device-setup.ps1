@@ -1,4 +1,4 @@
-﻿param([switch]$Check, [string]$Port)
+﻿param([switch]$Check, [Alias('Port')][string]$InitialPort)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
@@ -58,7 +58,7 @@ $refresh.Size = New-Object Drawing.Size(70, 28)
 $refresh.Add_Click({ Refresh-Ports })
 $form.Controls.Add($refresh)
 Refresh-Ports
-if ($Port) { $portBox.Text = $Port }
+if ($InitialPort) { $portBox.Text = $InitialPort }
 Add-Label 'Wi-Fi 名称' 65
 $ssidBox = Add-Input 63
 Add-Label 'Wi-Fi 密码' 108
@@ -215,6 +215,12 @@ $form.Add_FormClosed({
     if ($script:port) { $script:port.Dispose() }
 })
 if ($Check) {
+    if ($InitialPort -and $portBox.Text -ne $InitialPort) { throw 'Port argument was not passed to selector' }
+    $script:port = New-Object IO.Ports.SerialPort('COM3', 115200)
+    if ($script:port -isnot [IO.Ports.SerialPort]) { throw 'Serial port object was coerced by a parameter type' }
+    $script:port.DtrEnable = $false
+    $script:port.RtsEnable = $false
+    $script:port.Dispose()
     $form.Dispose()
     Write-Output 'PASS: device setup form created without opening any serial port.'
     exit 0
