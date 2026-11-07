@@ -17,4 +17,3 @@ if ((Read-Host '确认型号并同意烧录，输入 FLASH') -cne 'FLASH') { exi
 & $Python -m esptool --chip esp32s3 --port $Port --baud 115200 --before default_reset --after hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size 16MB 0x0 (Join-Path $release 'bootloader.bin') 0x8000 (Join-Path $release 'partition-table.bin') 0x10000 (Join-Path $release 'lease_voice.bin')
 if ($LASTEXITCODE -ne 0) { throw '烧录失败，未开始配网' }
 & (Join-Path $PSScriptRoot 'device-setup.ps1') -Port $Port
-
